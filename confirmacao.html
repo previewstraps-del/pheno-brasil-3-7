@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedido Confirmado – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.confirmacao-wrap { max-width: 600px; margin: 5rem auto; padding: 0 2rem; text-align: center; }
+.confirmacao-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+.confirmacao-wrap h1 { font-family: 'Barlow Condensed'; font-size: clamp(2rem,5vw,3rem); font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; }
+.confirmacao-wrap h1 span { color: var(--gold); }
+.confirmacao-wrap p { color: var(--muted); line-height: 1.7; margin-bottom: 1rem; }
+.pedido-id-box { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 4px; padding: 1.5rem; margin: 2rem 0; }
+.pedido-id-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+.pedido-id-value { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; color: var(--gold); letter-spacing: 0.1em; }
+.confirmacao-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+.btn-primary { background: var(--green); color: #fff; border: none; padding: 0.8rem 2rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; text-decoration: none; transition: background 0.2s; }
+.btn-primary:hover { background: var(--green2); }
+.btn-secondary { background: transparent; color: var(--white); border: 1px solid var(--border); padding: 0.8rem 2rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; text-decoration: none; transition: all 0.2s; }
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="confirmacao-wrap">
+  <div class="confirmacao-icon">✅</div>
+  <h1>Pedido <span>Confirmado!</span></h1>
+  <p>Seu pedido foi recebido e está sendo processado. Em breve entraremos em contato para confirmar os detalhes de entrega e pagamento.</p>
+
+  <div class="pedido-id-box">
+    <div class="pedido-id-label">Número do Pedido</div>
+    <div class="pedido-id-value" id="pedido-id">—</div>
+  </div>
+
+  <p style="font-size:0.85rem;">Guarde este número para acompanhar seu pedido em <strong>Meu Perfil → Meus Pedidos</strong>.</p>
+
+  <div class="confirmacao-actions">
+    <a href="meu_perfil.html" class="btn-primary">Ver Meus Pedidos</a>
+    <a href="index.html" class="btn-secondary">Continuar Comprando</a>
+  </div>
+</div>
+
+<script type="module">
+  import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+
+  renderNav();
+  initCarrinho();
+  initAuth();
+  renderFooter();
+
+  const id = new URLSearchParams(window.location.search).get('id');
+  if (id) {
+    document.getElementById('pedido-id').textContent = '#' + id.slice(-6).toUpperCase();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sementes – PhenoBrasil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        .hero { background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #0d0d0d 100%); padding: 4rem 2rem; text-align: center; border-bottom: 1px solid var(--border); }
+        .hero h1 { font-family: 'Barlow Condensed'; font-size: 3rem; text-transform: uppercase; color: #fff; }
+        .hero h1 span { color: var(--gold); }
+        .main-wrap { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; }
+        .controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; align-items: center; justify-content: space-between; }
+        .filter-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Barlow Condensed'; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: 0.2s; }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); }
+        select { background: var(--bg2); border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Barlow Condensed'; cursor: pointer; border-radius: 2px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .product-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 1rem; transition: 0.3s; }
+        .product-card:hover { border-color: var(--gold); }
+        .product-img { width: 100%; height: 200px; object-fit: cover; border-radius: 2px; background: var(--bg3); }
+        .product-name { font-family: 'Barlow Condensed'; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 10px 0; text-transform: uppercase; }
+        .product-price { color: var(--gold); font-weight: 800; font-family: 'Barlow Condensed'; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>BREEDERS <span>NACIONAIS</span></h1>
+</div>
+
+<div class="main-wrap">
+ <div class="controls">
+    <div id="filters" class="filter-group">
+       <button class="filter-btn active" data-cat="Todas"        onclick="filtrar('Todas')">Todas</button>
+       <button class="filter-btn"        data-cat="Automática"   onclick="filtrar('Automática')">Automáticas</button>
+       <button class="filter-btn"        data-cat="Feminizada"   onclick="filtrar('Feminizada')">Feminizadas</button>
+       <button class="filter-btn"        data-cat="Regular"      onclick="filtrar('Regular')">Regulares</button>
+       <button class="filter-btn"        data-cat="Fotoperiodo" onclick="filtrar('Fotoperiodo')">Fotoperiodo</button>
+    </div>
+        <select id="sort-select">
+        <option value="">Ordenar por...</option>
+        <option value="preco-menor">Menor Preço</option>
+        <option value="preco-maior">Maior Preço</option>
+        <option value="nome-a-z">Nome (A-Z)</option>
+        <option value="nome-z-a">Nome (Z-A)</option>
+        </select>
+    </div>
+
+    <div class="product-grid" id="strains-grid">
+        <p style="color:var(--muted)">Carregando genética...</p>
+    </div>
+</div>
+
+<script type="module">
+    import { renderNav, initCarrinho, initAuth, db } from './nav.js';
+    import { renderFooter } from './footer.js';
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    renderNav('Sementes');
+    initCarrinho();
+    initAuth();
+    renderFooter();
+
+    let todasStrains = [];
+    let categoriaAtual = 'Todas';
+    let ordenacaoAtual = '';
+    const grid = document.getElementById('strains-grid');
+
+    async function carregarDados() {
+        try {
+            const snap = await getDocs(collection(db, "products"));
+            todasStrains = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            aplicarFiltrosEOrdenacao(); // Centraliza a primeira renderização
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p style="color:red">Erro ao conectar ao banco de dados.</p>';
+        }
+    }
+
+    // Função mestre que junta Filtro + Ordenação sem que um anule o outro
+    function aplicarFiltrosEOrdenacao() {
+        // 1. Aplicar Filtragem
+        let listaFiltrada = (categoriaAtual === 'Todas')
+            ? todasStrains
+            : todasStrains.filter(p => {
+                const genetica      = (p.genetica      || '').trim();
+                const fotoperiodismo = (p.fotoperiodismo || '').trim();
+                const type          = (p.type || p.tipo  || '').trim();
+
+                if (categoriaAtual === 'Automática') {
+                    return fotoperiodismo === 'Automática' || type === 'Automática';
+                }
+                if (categoriaAtual === 'Feminizada') {
+                    return genetica === 'Feminizada' || type === 'Feminizada';
+                }
+                if (categoriaAtual === 'Regular') {
+                    return genetica === 'Regular' || type === 'Regular';
+                }
+                if (categoriaAtual === 'Fotoperiodo') {
+                    return fotoperiodismo === 'Fotoperiodo' || type === 'Feminizada' || type === 'Regular';
+                }
+                return type.toLowerCase() === categoriaAtual.toLowerCase();
+            });
+
+        // 2. Aplicar Ordenação em cima do resultado filtrado
+        switch(ordenacaoAtual) {
+            case 'preco-menor': 
+                listaFiltrada.sort((a,b) => (a.price || 0) - (b.price || 0)); 
+                break;
+            case 'preco-maior': 
+                listaFiltrada.sort((a,b) => (b.price || 0) - (a.price || 0)); 
+                break;
+            case 'nome-a-z': 
+                listaFiltrada.sort((a,b) => (a.name || '').localeCompare(b.name || '')); 
+                break;
+            case 'nome-z-a': 
+                listaFiltrada.sort((a,b) => (b.name || '').localeCompare(a.name || '')); 
+                break;
+        }
+
+        renderizar(listaFiltrada);
+    }
+
+    window.filtrar = (cat) => {
+        categoriaAtual = cat;
+        document.querySelectorAll('.filter-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.cat === cat)
+        );
+        aplicarFiltrosEOrdenacao();
+    };
+
+    function renderizar(lista) {
+        grid.innerHTML = lista.length ? '' : '<p style="color:var(--muted)">Nenhuma semente encontrada nesta categoria.</p>';
+        lista.forEach(p => {
+            const preco    = p.price ? p.price.toFixed(2).replace('.', ',') : '0,00';
+            const precoNum = p.price || 0;
+            const imgSafe  = (p.image || '').replace(/'/g, '');
+            const nameSafe = (p.name  || '').replace(/'/g, '&#39;');
+            const typeSafe = (p.type  || '').replace(/'/g, '&#39;');
+
+            const esgotado = p.status === 'esgotado' || p.status === 'inativo' || p.estoque === 0;
+            const baixo    = !esgotado && p.estoque !== undefined && p.estoque <= 3;
+
+            const btnCarrinho = esgotado
+              ? `<button disabled style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.45rem 0.8rem;font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;font-weight:700;text-transform:uppercase;border-radius:2px;cursor:not-allowed;">Esgotado</button>`
+              : `<button style="background:var(--green);color:#fff;border:none;padding:0.45rem 0.8rem;font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;font-weight:700;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all 0.2s" data-product-id="${p.id}" onclick="window.adicionarAoCarrinho('${p.id}','${nameSafe}','${typeSafe}',${precoNum},'${imgSafe}')">+ Carrinho</button>`;
+
+            const estoqueTag = esgotado
+              ? `<div style="font-size:0.72rem;color:var(--red);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">❌ Esgotado</div>`
+              : baixo
+              ? `<div style="font-size:0.72rem;color:var(--gold);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">⚠️ Últimas ${p.estoque}</div>`
+              : '';
+
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <img src="${p.image || ''}" class="product-img" alt="${p.name}" onerror="this.style.display='none'">
+                <div class="product-name">${p.name || 'Produto sem nome'}</div>
+                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem">${p.type || ''}${p.flow ? ' • ' + p.flow : ''}</div>
+                ${estoqueTag}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+                    <span class="product-price">R$ ${preco}</span>
+                    <div style="display:flex;gap:0.4rem">
+                        ${btnCarrinho}
+                        <a href="strain.html?id=${p.id}"
+                            style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.45rem 0.8rem;font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;font-weight:700;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center;transition:all 0.2s"
+                            onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
+                            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--white)'">
+                            Ver
+                        </a>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    document.getElementById('sort-select').addEventListener('change', (e) => {
+        ordenacaoAtual = e.target.value;
+        aplicarFiltrosEOrdenacao();
+    });
+
+    carregarDados();
+</script>
+</body>
+</html>

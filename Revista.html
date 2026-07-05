@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> Revista – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.em-breve-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+            text-align: center;
+            flex-direction: column;
+        }
+        .em-breve-container h1 { font-size: 3rem; color: var(--gold); }
+        .em-breve-container p { color: var(--muted); margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    
+
+    <main class="em-breve-container">
+        <h1>Revista</h1>
+        <p>Estamos preparando conteúdos exclusivos para você. Em breve!</p>
+    </main>
+
+   
+
+    <script type="module">
+       import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  renderNav();
+  initCarrinho();
+  initAuth();
+        renderFooter();
+
+        // Se você tiver uma função de footer no nav.js ou outro arquivo, chame aqui também
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loja – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+/* Estilos específicos da loja */
+.vendedor-tag { display: inline-block; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 2px; font-family: 'Barlow Condensed'; margin-bottom: 0.4rem; }
+.product-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin-bottom: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.variante-tag { background: var(--bg3); border: 1px solid var(--border); color: var(--muted); padding: 0.15rem 0.5rem; font-size: 0.72rem; border-radius: 2px; font-family: 'Barlow Condensed'; font-weight: 600; }
+.product-variantes { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.6rem; }
+.product-card.esgotado { opacity: 0.6; }
+ 
+/* MODAL VARIANTES */
+.modal-variantes-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 600; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-variantes-overlay.open { display: flex; }
+.modal-variantes { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 420px; padding: 2rem; border-radius: 4px; position: relative; }
+.modal-variantes h3 { font-family: 'Barlow Condensed'; font-size: 1.4rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.3rem; }
+.modal-variantes .mv-preco { font-family: 'Barlow Condensed'; font-size: 1.2rem; color: var(--gold); font-weight: 700; margin-bottom: 1.5rem; }
+.modal-variantes .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+.mv-grupo { margin-bottom: 1.2rem; }
+.mv-label { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+.mv-opcoes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mv-opcao { background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.4rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.mv-opcao:hover { border-color: var(--gold); color: var(--gold); }
+.mv-opcao.selected { background: var(--gold); border-color: var(--gold); color: #000; }
+.mv-confirmar { width: 100%; background: var(--green); color: #fff; border: none; padding: 0.9rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; margin-top: 1rem; transition: background 0.2s; }
+.mv-confirmar:hover { background: var(--green2); }
+</style>
+</head>
+<body>
+ 
+<div class="hero hero-blue">
+  <h1>Nossa <span>Loja</span></h1>
+  <p>Camisetas, bonés e acessórios exclusivos PhenoBrasil.</p>
+</div>
+ 
+<div class="main-wrap">
+  <div class="controls">
+    <div id="filters" class="filter-group"></div>
+    <select id="sort-select" class="sort-select">
+      <option value="">Ordenar por...</option>
+      <option value="preco-menor">Menor Preço</option>
+      <option value="preco-maior">Maior Preço</option>
+      <option value="nome-a-z">Nome (A-Z)</option>
+      <option value="nome-z-a">Nome (Z-A)</option>
+    </select>
+  </div>
+  <div class="product-grid" id="products-grid">
+    <div class="state-msg">Carregando produtos...</div>
+  </div>
+</div>
+ 
+<!-- MODAL VARIANTES -->
+<div class="modal-variantes-overlay" id="modal-variantes">
+  <div class="modal-variantes">
+    <button class="modal-close" onclick="fecharModalVariantes()">&times;</button>
+    <h3 id="mv-nome"></h3>
+    <div class="mv-preco" id="mv-preco"></div>
+    <div id="mv-grupos"></div>
+    <button class="mv-confirmar" onclick="confirmarVariantes()">+ Adicionar ao Carrinho</button>
+  </div>
+</div>
+ 
+<script type="module">
+  import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { getProdutosLoja } from './data.js';
+ 
+  renderNav('Loja');
+  initCarrinho();
+  initAuth();
+  renderFooter();
+ 
+  const grid        = document.getElementById('products-grid');
+  const filtersWrap = document.getElementById('filters');
+  const sortSelect  = document.getElementById('sort-select');
+ 
+  let todosProdutos  = [];
+  let categoriaAtual = 'Todos';
+  let ordenacaoAtual = '';
+ 
+  const renderProdutos = (lista) => {
+    grid.innerHTML = '';
+    if (!lista.length) { grid.innerHTML = '<div class="state-msg">Nenhum produto encontrado.</div>'; return; }
+    lista.forEach(p => {
+      const precoNum = p.price || 0;
+      const imgSafe  = (p.image || '').replace(/'/g, '');
+      const nameSafe = (p.name  || '').replace(/'/g, '&#39;');
+      const catSafe  = (p.categoria || '').replace(/'/g, '&#39;');
+      const esgotado = p.status === 'esgotado' || p.estoque === 0;
+      const baixo    = !esgotado && p.estoque !== undefined && p.estoque <= 3;
+ 
+      const variantesHtml = (p.variantes || []).map(v =>
+        `<span class="variante-tag">${v.nome}: ${v.opcoes.join(' / ')}</span>`
+      ).join('');
+ 
+      const btnCarrinho = esgotado
+        ? `<button disabled class="btn-cart" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);cursor:not-allowed;">Esgotado</button>`
+        : (p.variantes && p.variantes.length)
+        ? `<button class="btn-cart" data-product-id="${p.id}" onclick="abrirModalVariantes('${p.id}')">+ Carrinho</button>`
+        : `<button class="btn-cart" data-product-id="${p.id}"
+            onclick="window.adicionarAoCarrinho('${p.id}','${nameSafe}','${catSafe}',${precoNum},'${imgSafe}')">
+            + Carrinho
+           </button>`;
+ 
+      const estoqueTag = esgotado
+        ? `<div style="font-size:0.72rem;color:var(--red);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">❌ Esgotado</div>`
+        : baixo
+        ? `<div style="font-size:0.72rem;color:var(--gold);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">⚠️ Últimas ${p.estoque}</div>`
+        : '';
+ 
+      const card = document.createElement('div');
+      card.className = `product-card${esgotado ? ' esgotado' : ''}`;
+      card.innerHTML = `
+        ${p.image ? `<img class="product-img" src="${p.image}" alt="${p.name}" onerror="this.style.display='none'">` : '<div class="product-img"></div>'}
+        <div class="product-body">
+          <div class="vendedor-tag">🏷️ ${p.vendedorNome || 'PhenoBrasil'}</div>
+          <div class="product-type">${p.categoria || ''}</div>
+          <div class="product-name">${p.name}</div>
+          ${p.descricao ? `<div class="product-desc">${p.descricao}</div>` : ''}
+          ${variantesHtml ? `<div class="product-variantes">${variantesHtml}</div>` : ''}
+          ${estoqueTag}
+          <div class="product-footer">
+            <span class="product-price">R$ ${precoNum.toFixed(2).replace('.', ',')}</span>
+            ${btnCarrinho}
+            <a href="produto.html?id=${p.id}" class="btn-view">Ver</a>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  };
+ 
+  // Gerencia o fluxo combinado mantendo o sort ativo ao mudar de aba
+  const aplicarFiltrosEOrdenacao = () => {
+    // 1. Filtrar
+    let lista = categoriaAtual === 'Todos'
+      ? todosProdutos
+      : todosProdutos.filter(p => p.categoria === categoriaAtual);
+ 
+    // 2. Ordenar
+    switch(ordenacaoAtual) {
+      case 'preco-menor': lista.sort((a,b) => (a.price||0) - (b.price||0)); break;
+      case 'preco-maior': lista.sort((a,b) => (b.price||0) - (a.price||0)); break;
+      case 'nome-a-z':    lista.sort((a,b) => (a.name||'').localeCompare(b.name||'')); break;
+      case 'nome-z-a':    lista.sort((a,b) => (b.name||'').localeCompare(a.name||'')); break;
+    }
+    renderProdutos(lista);
+  };
+ 
+  window.filtrar = (cat, btn) => {
+    categoriaAtual = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    aplicarFiltrosEOrdenacao(); // Não limpa mais o sortSelect da tela!
+  };
+ 
+  sortSelect.addEventListener('change', (e) => {
+    ordenacaoAtual = e.target.value;
+    aplicarFiltrosEOrdenacao();
+  });
+ 
+  const carregar = async () => {
+    try {
+      const todos = await getProdutosLoja();
+      todosProdutos = todos.filter(p => p.status !== 'inativo');
+      const cats = ['Todos', ...new Set(todosProdutos.map(p => p.categoria).filter(Boolean))].sort();
+      filtersWrap.innerHTML = cats.map(c =>
+        `<button class="filter-btn ${c === 'Todos' ? 'active' : ''}" onclick="window.filtrar('${c}', this)">${c}</button>`
+      ).join('');
+      aplicarFiltrosEOrdenacao();
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = '<div class="state-err">Erro ao carregar loja.</div>';
+    }
+  };
+ 
+  // ── MODAL VARIANTES ──────────────────────────────────────
+  let produtoModalAtual = null;
+  let selecionadasModal = {};
+ 
+  window.abrirModalVariantes = (id) => {
+    const p = todosProdutos.find(p => p.id === id);
+    if (!p) return;
+    produtoModalAtual = p;
+    selecionadasModal = {};
+ 
+    document.getElementById('mv-nome').textContent = p.name;
+    document.getElementById('mv-preco').textContent = `R$ ${(p.price||0).toFixed(2).replace('.', ',')}`;
+ 
+    const gruposWrap = document.getElementById('mv-grupos');
+    gruposWrap.innerHTML = '';
+ 
+    p.variantes.forEach(grupo => {
+      if (!grupo.opcoes?.length) return;
+      selecionadasModal[grupo.nome] = grupo.opcoes[0];
+ 
+      const div = document.createElement('div');
+      div.className = 'mv-grupo';
+      div.innerHTML = `<span class="mv-label">${grupo.nome}</span><div class="mv-opcoes" id="mv-opcoes-${grupo.nome}"></div>`;
+      gruposWrap.appendChild(div);
+ 
+      const opcoesWrap = div.querySelector('.mv-opcoes');
+      grupo.opcoes.forEach((opcao, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'mv-opcao' + (i === 0 ? ' selected' : '');
+        btn.textContent = opcao;
+        btn.onclick = () => {
+          opcoesWrap.querySelectorAll('.mv-opcao').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selecionadasModal[grupo.nome] = opcao;
+        };
+        opcoesWrap.appendChild(btn);
+      });
+    });
+ 
+    document.getElementById('modal-variantes').classList.add('open');
+  };
+ 
+  window.fecharModalVariantes = () => {
+    document.getElementById('modal-variantes').classList.remove('open');
+    produtoModalAtual = null;
+    selecionadasModal = {};
+  };
+ 
+  window.confirmarVariantes = () => {
+    if (!produtoModalAtual) return;
+    const variantesStr = Object.entries(selecionadasModal).map(([k,v]) => `${k}: ${v}`).join(' | ');
+    const nomeFinal    = variantesStr ? `${produtoModalAtual.name} (${variantesStr})` : produtoModalAtual.name;
+    window.adicionarAoCarrinho(produtoModalAtual.id, nomeFinal, produtoModalAtual.categoria, produtoModalAtual.price, produtoModalAtual.image);
+    window.fecharModalVariantes();
+  };
+ 
+  carregar();
+</script>
+</body>
+</html>

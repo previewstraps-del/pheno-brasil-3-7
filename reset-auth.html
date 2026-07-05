@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redefinir Authenticator – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.reset-wrap { max-width: 480px; margin: 6rem auto; padding: 0 2rem; text-align: center; }
+.reset-icon { font-size: 3rem; margin-bottom: 1.5rem; }
+.reset-wrap h1 { font-family: 'Barlow Condensed'; font-size: 2.5rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; }
+.reset-wrap h1 span { color: var(--gold); }
+.reset-wrap p { color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }
+.reset-box { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 4px; padding: 2rem; margin: 2rem 0; }
+.btn-confirmar { background: var(--green); color: #fff; border: none; padding: 1rem 2rem; font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; width: 100%; transition: background 0.2s; }
+.btn-confirmar:hover { background: var(--green2); }
+.btn-confirmar:disabled { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); cursor: not-allowed; }
+.msg-erro  { color: var(--red);    margin-top: 1rem; font-size: 0.9rem; }
+.msg-sucesso { color: var(--green2); margin-top: 1rem; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="reset-wrap">
+  <div class="reset-icon" id="icone">🔐</div>
+  <h1>Redefinir <span>Authenticator</span></h1>
+
+  <div id="estado-carregando">
+    <p>Verificando link...</p>
+  </div>
+
+  <div id="estado-confirmar" style="display:none">
+    <p>Clique no botão abaixo para confirmar sua identidade e desvincular o Google Authenticator atual. No próximo login, você será solicitado a configurar um novo.</p>
+    <div class="reset-box">
+      <button class="btn-confirmar" id="btn-confirmar" onclick="confirmar()">Confirmar Redefinição</button>
+      <div id="msg" class="msg-erro"></div>
+    </div>
+    <p style="font-size:0.82rem">Se você não solicitou isso, ignore — sua conta está segura.</p>
+  </div>
+
+  <div id="estado-sucesso" style="display:none">
+    <p>✅ Authenticator desvinculado com sucesso! Faça login novamente e configure um novo Google Authenticator.</p>
+    <a href="index.html" style="display:inline-block;margin-top:1rem;background:var(--green);color:#fff;padding:0.8rem 2rem;font-family:'Barlow Condensed';font-size:1rem;font-weight:700;text-transform:uppercase;border-radius:2px;text-decoration:none">Ir para o Login</a>
+  </div>
+
+  <div id="estado-erro" style="display:none">
+    <p style="color:var(--red)">❌ Link inválido ou expirado. Solicite um novo reset do Authenticator.</p>
+    <a href="index.html" style="display:inline-block;margin-top:1rem;background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.8rem 2rem;font-family:'Barlow Condensed';font-size:1rem;font-weight:700;text-transform:uppercase;border-radius:2px;text-decoration:none">Voltar ao Início</a>
+  </div>
+</div>
+
+<script type="module">
+  import { renderFooter } from './footer.js';
+  renderFooter();
+
+  const params = new URLSearchParams(window.location.search);
+  const uid    = params.get('uid');
+  const token  = params.get('token');
+
+  const show = (id) => {
+    ['estado-carregando','estado-confirmar','estado-sucesso','estado-erro'].forEach(s => {
+      document.getElementById(s).style.display = s === id ? 'block' : 'none';
+    });
+  };
+
+  if (!uid || !token) {
+    show('estado-erro');
+  } else {
+    show('estado-confirmar');
+  }
+
+  window.confirmar = async () => {
+    const btn = document.getElementById('btn-confirmar');
+    const msg = document.getElementById('msg');
+    btn.disabled = true;
+    btn.textContent = 'Confirmando...';
+    msg.textContent = '';
+    msg.className = 'msg-erro';
+
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/confirmarResetAuthenticator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, token })
+      });
+      const data = await resp.json();
+
+      if (data.ok) {
+        document.getElementById('icone').textContent = '✅';
+        show('estado-sucesso');
+      } else {
+        msg.textContent = data.error || 'Erro ao confirmar. Tente novamente.';
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Redefinição';
+      }
+    } catch (_) {
+      msg.textContent = 'Erro de conexão. Tente novamente.';
+      btn.disabled = false;
+      btn.textContent = 'Confirmar Redefinição';
+    }
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Perfil – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+  /* ── Layout geral ── */
+  .perfil-wrapper {
+    max-width: 960px;
+    margin: 48px auto;
+    padding: 0 20px 80px;
+  }
+ 
+  .perfil-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+ 
+  /* ── Avatar ── */
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+ 
+  .avatar-wrap img,
+  .avatar-wrap .avatar-placeholder {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gold);
+    display: block;
+  }
+ 
+  .avatar-wrap .avatar-placeholder {
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--gold);
+    border: 3px solid var(--gold);
+  }
+
+  /* UPLOAD FOTO */
+  .foto-upload-wrap { display: flex; align-items: center; gap: 1rem; }
+  .foto-upload-label { flex: 1; background: var(--bg3, #1c1c1c); border: 1px dashed var(--border, #2a2a2a); color: var(--muted, #888); padding: 0.65rem 1rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
+  .foto-upload-label:hover { border-color: var(--gold, #c9a84c); color: var(--gold, #c9a84c); }
+  .foto-upload-input { display: none; }
+ 
+  .perfil-header-info h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 0 0 4px;
+  }
+ 
+  .perfil-header-info p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+ 
+  /* ── Abas ── */
+  .perfil-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 32px;
+  }
+ 
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 10px 22px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px;
+  }
+ 
+  .tab-btn.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+ 
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+ 
+  /* ── Formulário de edição ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+ 
+  .form-grid .full-width { grid-column: 1 / -1; }
+ 
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+ 
+  .field-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+ 
+  .field-group input {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+ 
+  .field-group input:focus {
+    border-color: var(--gold);
+  }
+ 
+  .field-group input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+ 
+  .section-divider {
+    border: none;
+    border-top: 1px solid #2a2a2a;
+    margin: 28px 0;
+  }
+ 
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 18px;
+  }
+ 
+  /* ── Botões ── */
+  .btn-salvar {
+    margin-top: 8px;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 11px 32px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+ 
+  .btn-salvar:hover { opacity: 0.85; }
+  .btn-salvar:disabled { opacity: 0.4; cursor: not-allowed; }
+ 
+ 
+  /* ── Pedidos ── */
+  .pedidos-vazio {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+ 
+  .pedidos-vazio .icone {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+  }
+ 
+  .pedidos-vazio h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+ 
+  .pedido-card {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+ 
+  .pedido-info p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+  .pedido-info strong { font-size: 1rem; color: #fff; }
+ 
+  .pedido-status {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+ 
+  .status-pendente   { background: #3a2a00; color: #f0a500; }
+  .status-confirmado { background: #002a10; color: #00cc66; }
+  .status-cancelado  { background: #2a0000; color: #e74c3c; }
+ 
+  .pedido-card {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .pedido-card:hover { border-color: var(--gold); }
+ 
+  .pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+ 
+  .pedido-header-left { display: flex; flex-direction: column; gap: 3px; }
+  .pedido-id { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; }
+  .pedido-data { font-size: 0.78rem; color: var(--muted); }
+ 
+  .pedido-header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .pedido-total-mini { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; color: var(--gold); }
+  .pedido-arrow { color: var(--muted); font-size: 0.75rem; transition: transform 0.2s; }
+  .pedido-card.open .pedido-arrow { transform: rotate(180deg); }
+ 
+  .pedido-body {
+    display: none;
+    padding: 0 20px 16px;
+    border-top: 1px solid #2a2a2a;
+  }
+  .pedido-card.open .pedido-body { display: block; }
+ 
+  .pedido-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid #1e1e1e;
+  }
+  .pedido-item-row:last-of-type { border-bottom: none; }
+  .pedido-item-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #2a2a2a; flex-shrink: 0; }
+  .pedido-item-name { font-size: 0.9rem; color: #fff; font-weight: 600; }
+  .pedido-item-sub  { font-size: 0.78rem; color: var(--muted); }
+ 
+  .btn-cancelar {
+    margin-top: 14px;
+    background: transparent;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 6px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .btn-cancelar:hover { background: #e74c3c; color: #fff; }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full-width { grid-column: 1; }
+    .perfil-header { flex-direction: column; text-align: center; }
+    .pedido-card { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+ 
+<div class="perfil-wrapper">
+ 
+  <!-- Cabeçalho do perfil -->
+  <div class="perfil-header">
+    <div class="avatar-wrap">
+      <div class="avatar-placeholder" id="avatar-placeholder">?</div>
+      <img id="avatar-img" src="" alt="Foto de perfil" style="display:none;">
+    </div>
+    <div class="perfil-header-info">
+      <h1 id="header-nome">Carregando...</h1>
+      <p id="header-email">—</p>
+    </div>
+  </div>
+ 
+  <!-- Abas -->
+  <div class="perfil-tabs">
+    <button class="tab-btn active" data-tab="dados">Meus Dados</button>
+    <button class="tab-btn" data-tab="pedidos">Meus Pedidos</button>
+    <button class="tab-btn" data-tab="senha">Alterar Senha</button>
+  </div>
+ 
+  <!-- ══ ABA: DADOS ══ -->
+  <div class="tab-panel active" id="tab-dados">
+    <p class="section-label">Informações pessoais</p>
+    <div class="form-grid">
+      <div class="field-group">
+        <label>Nome</label>
+        <input type="text" id="campo-nome" placeholder="Seu nome">
+      </div>
+      <div class="field-group">
+        <label>Telefone</label>
+        <input type="tel" id="campo-telefone" placeholder="(00) 00000-0000">
+      </div>
+      <div class="field-group full-width">
+        <label>E-mail</label>
+        <input type="email" id="campo-email" disabled title="Para alterar o e-mail, entre em contato com o suporte.">
+      </div>
+      <div class="field-group full-width">
+        <label>Foto de Perfil</label>
+        <div class="foto-upload-wrap">
+          <label class="foto-upload-label" for="campo-foto-input">
+            📁 Escolher arquivo...
+            <span id="campo-foto-nome" style="font-weight:400;text-transform:none;font-size:0.75rem;color:var(--muted)">nenhum arquivo</span>
+          </label>
+          <input type="file" id="campo-foto-input" class="foto-upload-input" accept="image/*">
+        </div>
+      </div>
+    </div>
+ 
+ 
+    <br>
+    <button class="btn-salvar" id="btn-salvar-dados" onclick="salvarDados()">Salvar alterações</button>
+  </div>
+ 
+  <!-- ══ ABA: PEDIDOS ══ -->
+  <div class="tab-panel" id="tab-pedidos">
+    <div id="pedidos-container">
+      <div class="pedidos-vazio">
+        <span class="icone">📦</span>
+        <h3>Nenhum pedido ainda</h3>
+        <p>Quando você realizar um pedido, ele aparecerá aqui.</p>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ══ ABA: SENHA ══ -->
+  <div class="tab-panel" id="tab-senha">
+    <p class="section-label">Alterar senha</p>
+    <div class="form-grid">
+      <div class="field-group full-width">
+        <label>Nova senha</label>
+        <input type="password" id="campo-nova-senha" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="field-group full-width">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="campo-confirma-senha" placeholder="Repita a nova senha">
+      </div>
+    </div>
+    <br>
+    <button class="btn-salvar" onclick="alterarSenha()">Salvar nova senha</button>
+  </div>
+ 
+</div>
+ 
+<script type="module">
+  import { renderNav, initCarrinho, initAuth, db, auth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import {
+    getDoc, doc, setDoc, updateDoc, collection, query, where, getDocs, orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    onAuthStateChanged, updatePassword
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+ 
+  renderNav();
+  initCarrinho();
+  initAuth();
+  renderFooter();
+ 
+  // ── Helpers globais ──────────────────────────────────────
+  let usuarioAtual = null;
+  let fotoAtualUrl = '';
+
+  // Listener upload foto perfil — aguarda DOM estar pronto
+  const fotoInput = document.getElementById('campo-foto-input');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const b64 = ev.target.result;
+        document.getElementById('campo-foto-input').dataset.base64 = b64;
+        document.getElementById('campo-foto-nome').textContent = file.name;
+        // preview
+        document.getElementById('avatar-placeholder').style.display = 'none';
+        const img = document.getElementById('avatar-img');
+        img.src = b64;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+ 
+  window.mostrarToast = (msg, tipo = 'ok') => {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    // suporte ao estilo erro via border temporária
+    if (tipo === 'erro') {
+      t.style.borderColor = '#e74c3c';
+      t.style.color = '#e74c3c';
+    } else {
+      t.style.borderColor = '';
+      t.style.color = '';
+    }
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); t.style.borderColor = ''; t.style.color = ''; }, 3000);
+  };
+ 
+  // ── Abas ────────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+ 
+
+  // ── Máscara telefone ────────────────────────────────────
+  document.getElementById('campo-telefone').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+    else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    e.target.value = v;
+  });
+ 
+ 
+  // ── Salvar dados pessoais ────────────────────────────────
+  window.salvarDados = async () => {
+    if (!usuarioAtual) return;
+    const btn = document.getElementById('btn-salvar-dados');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+ 
+    const dados = {
+      nome:        document.getElementById('campo-nome').value.trim(),
+      telefone:    document.getElementById('campo-telefone').value.trim(),
+      foto:        document.getElementById('campo-foto-input').dataset.base64 || fotoAtualUrl,
+      atualizadoEm: new Date().toISOString(),
+    };
+ 
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/salvarDadosUsuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: usuarioAtual.uid, dados })
+      });
+      const result = await resp.json();
+      if (!result.ok) throw new Error(result.error || 'Erro ao salvar');
+
+      document.getElementById('header-nome').textContent = dados.nome || '—';
+      if (dados.foto) {
+        document.getElementById('avatar-placeholder').style.display = 'none';
+        const img = document.getElementById('avatar-img');
+        img.src = dados.foto;
+        img.style.display = 'block';
+        fotoAtualUrl = dados.foto;
+      }
+      mostrarToast('✅ Dados salvos com sucesso!');
+    } catch (err) {
+      mostrarToast('Erro ao salvar: ' + err.message, 'erro');
+    }
+ 
+    btn.disabled = false;
+    btn.textContent = 'Salvar alterações';
+  };
+ 
+  // ── Alterar senha ────────────────────────────────────────
+  window.alterarSenha = async () => {
+    const nova     = document.getElementById('campo-nova-senha').value;
+    const confirma = document.getElementById('campo-confirma-senha').value;
+ 
+    if (nova.length < 6) return mostrarToast('A senha precisa ter ao menos 6 caracteres.', 'erro');
+    if (nova !== confirma) return mostrarToast('As senhas não coincidem.', 'erro');
+ 
+    try {
+      await updatePassword(usuarioAtual, nova);
+      document.getElementById('campo-nova-senha').value = '';
+      document.getElementById('campo-confirma-senha').value = '';
+      mostrarToast('✅ Senha alterada com sucesso!');
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+        mostrarToast('Por segurança, faça logout e login novamente antes de trocar a senha.', 'erro');
+      } else {
+        mostrarToast('Erro: ' + err.message, 'erro');
+      }
+    }
+  };
+ 
+  // ── Carregar pedidos ─────────────────────────────────────
+  const carregarPedidos = async (uid) => {
+    const container = document.getElementById('pedidos-container');
+    try {
+      const q    = query(collection(db, 'pedidos'), where('userId', '==', uid));
+      const snap = await getDocs(q);
+
+      if (snap.empty) return;
+
+      const pedidos = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const ta = a.criadoEm?.toDate?.() || new Date(a.criadoEm || 0);
+          const tb = b.criadoEm?.toDate?.() || new Date(b.criadoEm || 0);
+          return tb - ta;
+        });
+ 
+      container.innerHTML = '';
+ 
+      pedidos.forEach(p => {
+        const statusMap = {
+          pendente:   { cls: 'status-pendente',   label: '⏳ Pendente'   },
+          confirmado: { cls: 'status-confirmado',  label: '✅ Confirmado' },
+          cancelado:  { cls: 'status-cancelado',   label: '❌ Cancelado'  },
+        };
+        const st = statusMap[p.status] || statusMap['pendente'];
+ 
+        const data = p.criadoEm?.toDate
+          ? p.criadoEm.toDate().toLocaleDateString('pt-BR')
+          : p.criadoEm ? new Date(p.criadoEm).toLocaleDateString('pt-BR') : '—';
+ 
+        const itensHtml = (p.itens || []).map(i => `
+          <div class="pedido-item-row">
+            ${i.image ? `<img src="${i.image}" class="pedido-item-img" alt="">` : ''}
+            <div>
+              <div class="pedido-item-name">${i.name}</div>
+              <div class="pedido-item-sub">${i.qty}x · R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}</div>
+            </div>
+          </div>`).join('');
+ 
+        const podeCancelar = p.status === 'pendente';
+ 
+        const card = document.createElement('div');
+        card.className = 'pedido-card';
+        card.id = `pedido-${p.id}`;
+        card.innerHTML = `
+          <div class="pedido-header" onclick="togglePedido('${p.id}')">
+            <div class="pedido-header-left">
+              <span class="pedido-id">Pedido #${p.id.slice(-6).toUpperCase()}</span>
+              <span class="pedido-data">${data}</span>
+            </div>
+            <div class="pedido-header-right">
+              <span class="pedido-total-mini">R$ ${(p.total || 0).toFixed(2).replace('.', ',')}</span>
+              <span class="pedido-status ${st.cls}">${st.label}</span>
+              <span class="pedido-arrow">▼</span>
+            </div>
+          </div>
+          <div class="pedido-body">
+            ${itensHtml}
+            <div style="text-align:right;margin-top:10px;font-family:'Barlow Condensed';font-size:1.1rem;font-weight:700;color:var(--gold);">
+              Total: R$ ${(p.total || 0).toFixed(2).replace('.', ',')}
+            </div>
+            ${podeCancelar ? `<button class="btn-cancelar" onclick="cancelarPedido('${p.id}')">Cancelar Pedido</button>` : ''}
+          </div>`;
+        container.appendChild(card);
+      });
+ 
+    } catch(e) { console.error(e); }
+  };
+ 
+  window.togglePedido = (id) => {
+    document.getElementById(`pedido-${id}`)?.classList.toggle('open');
+  };
+ 
+  window.cancelarPedido = async (id) => {
+    if (!confirm('Deseja cancelar esse pedido?\n\nEssa ação não pode ser desfeita.')) return;
+    try {
+      const pedidoSnap = await getDoc(doc(db, 'pedidos', id));
+      if (!pedidoSnap.exists()) { mostrarToast('Pedido não encontrado.', 'erro'); return; }
+      const pedido = pedidoSnap.data();
+ 
+      await updateDoc(doc(db, 'pedidos', id), { status: 'cancelado' });
+ 
+      // Se estava confirmado, restaura estoque
+      if (pedido.status === 'confirmado' && pedido.itens?.length) {
+        const { increment } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        for (const item of pedido.itens) {
+          let colecao = 'products';
+          let snap = await getDoc(doc(db, colecao, item.id));
+          if (!snap.exists()) { colecao = 'loja_produtos'; snap = await getDoc(doc(db, colecao, item.id)); }
+          if (!snap.exists() || snap.data().estoque === undefined) continue;
+          const novoEstoque = (snap.data().estoque || 0) + item.qty;
+          await updateDoc(doc(db, colecao, item.id), {
+            estoque: novoEstoque,
+            ...(snap.data().status === 'esgotado' && novoEstoque > 0 ? { status: 'ativo' } : {})
+          });
+        }
+      }
+ 
+      mostrarToast('Pedido cancelado.');
+      carregarPedidos(usuarioAtual.uid);
+    } catch(e) {
+      mostrarToast('Erro ao cancelar: ' + e.message, 'erro');
+    }
+  };
+ 
+  // ── Controle de acesso + carregamento ────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      location.href = 'index.html';
+      return;
+    }
+
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const data = snap.exists() ? snap.data() : {};
+
+      const roles     = Array.isArray(data.roles) ? data.roles : [];
+      const isElevado = roles.includes('breeder') || roles.includes('vendedor');
+
+      if (isElevado) {
+        location.href = 'dashboard.html';
+        return;
+      }
+
+      // Preenche campos
+      document.getElementById('campo-nome').value     = data.nome     || user.displayName || '';
+      document.getElementById('campo-email').value    = user.email    || '';
+
+      // Buscar telefone descriptografado via CF
+      try {
+        const respTel = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/buscarDadosUsuario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: user.uid })
+        });
+        const dataTel = await respTel.json();
+        if (dataTel.ok) {
+          document.getElementById('campo-telefone').value = dataTel.telefone || '';
+        }
+      } catch (_) {
+        document.getElementById('campo-telefone').value = data.telefone || '';
+      }
+
+      document.getElementById('header-nome').textContent  = data.nome  || user.displayName || 'Usuário';
+      document.getElementById('header-email').textContent = user.email || '—';
+
+      // Foto
+      fotoAtualUrl = data.foto || '';
+      if (data.foto) {
+        document.getElementById('avatar-placeholder').style.display = 'none';
+        const img = document.getElementById('avatar-img');
+        img.src = data.foto;
+        img.style.display = 'block';
+      } else {
+        const iniciais = (data.nome || user.displayName || 'U').split(' ')
+          .map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        document.getElementById('avatar-placeholder').textContent = iniciais;
+      }
+
+    } catch (_) {}
+
+    usuarioAtual = user;
+    carregarPedidos(user.uid);
+  });
+</script>
+</body>
+</html>

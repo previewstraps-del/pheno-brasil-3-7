@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breeders – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+/* Estilos específicos da página breeders */
+.breeders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+.breeder-card { background: var(--bg2); border: 1px solid var(--border); padding: 2rem 1rem 1.5rem; border-radius: 4px; text-align: center; text-decoration: none; color: var(--white); transition: all 0.2s; display: block; }
+.breeder-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+.breeder-card:hover .breeder-avatar { border-color: var(--gold); }
+.breeder-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); margin: 0 auto 1rem; display: block; background: var(--bg3); transition: border-color 0.2s; }
+.breeder-name { font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem; }
+.breeder-count { font-size: 0.78rem; color: var(--muted); }
+.breeder-count strong { color: var(--gold); font-family: 'Barlow Condensed'; font-size: 0.9rem; }
+@media (max-width: 480px) { .breeders-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="hero hero-green">
+  <h1>Nossos <span>Breeders</span></h1>
+  <p>Conheça os cultivadores por trás das melhores genéticas nacionais.</p>
+</div>
+
+<div class="main-wrap">
+  <div class="section-head">
+    <h2>Todos os <span>Cultivadores</span></h2>
+    <span class="total-count" id="total-count"></span>
+  </div>
+  <div class="breeders-grid" id="breeders-grid">
+    <div class="state-msg">Carregando breeders...</div>
+  </div>
+</div>
+
+<script type="module">
+  import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { getBreeders } from './data.js';
+
+  renderNav('Breeders');
+  initCarrinho();
+  initAuth();
+  renderFooter();
+
+  const grid    = document.getElementById('breeders-grid');
+  const totalEl = document.getElementById('total-count');
+
+  const carregar = async () => {
+    try {
+      const breeders = await getBreeders();
+      grid.innerHTML = '';
+
+      if (!breeders.length) {
+        grid.innerHTML = '<div class="state-msg">Nenhum breeder cadastrado ainda.</div>';
+        return;
+      }
+
+      totalEl.textContent = `${breeders.length} breeder${breeders.length !== 1 ? 's' : ''} cadastrado${breeders.length !== 1 ? 's' : ''}`;
+
+      breeders.forEach(b => {
+        const card = document.createElement('a');
+        card.className = 'breeder-card';
+        card.href = `breeder-strains.html?id=${b.id}`;
+        card.innerHTML = `
+          <img class="breeder-avatar" src="${b.avatar}" alt="${b.name || 'Breeder'}">
+          <div class="breeder-name">${b.name || 'Breeder'}</div>
+          <div class="breeder-count"><strong>${b.totalStrains}</strong> strain${b.totalStrains !== 1 ? 's' : ''}</div>`;
+        grid.appendChild(card);
+      });
+
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = '<div class="state-err">Erro ao carregar breeders.</div>';
+    }
+  };
+
+  carregar();
+</script>
+</body>
+</html>

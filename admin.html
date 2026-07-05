@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0d; --bg2: #141414; --bg3: #1c1c1c;
+  --border: #2a2a2a; --gold: #c9a84c; --green: #3a7d44;
+  --green2: #4caf50; --white: #f0ede8; --muted: #888; --red: #e05252;
+}
+body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--white); min-height: 100vh; }
+ 
+/* NAV */
+nav { background: #070707; border-bottom: 1px solid var(--border); border-top: 3px solid var(--red); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 70px; position: sticky; top: 0; z-index: 100; }
+.nav-logo h2 { font-family: 'Barlow Condensed'; font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; }
+.nav-actions { display: flex; align-items: center; gap: 1rem; }
+.nav-link-btn { background: transparent; border: 1px solid var(--border); color: var(--white); padding: 0.5rem 1rem; cursor: pointer; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; text-decoration: none; font-size: 0.9rem; border-radius: 2px; transition: all 0.2s; }
+.nav-link-btn:hover { border-color: var(--gold); color: var(--gold); }
+.logout-btn { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0.5rem 1rem; cursor: pointer; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; transition: all 0.2s; border-radius: 2px; }
+.logout-btn:hover { background: var(--red); color: #fff; }
+ 
+.admin-container { max-width: 1300px; margin: 2rem auto; padding: 0 2rem; }
+ 
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 1.2rem 1.5rem; }
+.stat-card-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.stat-card-value { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; color: var(--gold); }
+ 
+/* SEÇÃO USUÁRIOS */
+.section-collapsible { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
+.section-toggle { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; cursor: pointer; user-select: none; transition: background 0.2s; }
+.section-toggle:hover { background: var(--bg3); }
+.section-toggle h3 { font-family: 'Barlow Condensed'; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; color: var(--gold); }
+.section-toggle-right { display: flex; align-items: center; gap: 1rem; }
+.section-count { font-size: 0.8rem; color: var(--muted); font-family: 'Barlow Condensed'; }
+.toggle-arrow { color: var(--muted); font-size: 0.75rem; transition: transform 0.2s; }
+.section-collapsible.open .toggle-arrow { transform: rotate(180deg); }
+.section-body { display: none; border-top: 1px solid var(--border); }
+.section-collapsible.open .section-body { display: block; }
+ 
+/* TOOLBAR */
+.section-toolbar { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg3); flex-wrap: wrap; }
+.search-wrap { display: flex; align-items: center; gap: 0.5rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; padding: 0.4rem 0.8rem; flex: 1; min-width: 200px; }
+.search-wrap:focus-within { border-color: var(--gold); }
+.search-wrap input { background: none; border: none; color: var(--white); font-family: 'Barlow'; font-size: 0.9rem; outline: none; width: 100%; }
+.search-wrap span { color: var(--muted); }
+ 
+/* LISTA DE USUÁRIOS */
+.users-list { padding: 1rem 1.5rem; max-height: 500px; overflow-y: auto; }
+.user-item { background: var(--bg3); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 2px; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.8rem; transition: border-color 0.2s; }
+.user-item:hover { border-color: var(--border); }
+.user-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); background: #222; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 1.1rem; color: var(--gold); overflow: hidden; }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-info { flex: 1; min-width: 0; }
+.user-info h4 { font-size: 0.9rem; font-weight: 700; color: var(--white); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.4rem; }
+.user-info p { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+.user-roles { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.3rem; }
+.role-tag { font-size: 0.65rem; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; padding: 0.1rem 0.45rem; border-radius: 2px; border: 1px solid; }
+.role-tag.breeder  { color: var(--green2); border-color: var(--green); background: rgba(58,125,68,0.12); }
+.role-tag.vendedor { color: #7eb8f7; border-color: #3a6fa8; background: rgba(58,111,168,0.12); }
+.user-controls { display: flex; gap: 0.4rem; flex-shrink: 0; }
+.btn-action { border: none; padding: 0.35rem 0.7rem; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.btn-roles  { background: var(--bg2); color: var(--gold); border: 1px solid var(--gold); }
+.btn-roles:hover { background: var(--gold); color: #000; }
+.btn-delete { background: transparent; color: var(--red); border: 1px solid var(--red); }
+.btn-delete:hover { background: var(--red); color: #fff; }
+ 
+/* TABELAS */
+.table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; color: var(--muted); padding: 0.8rem 1rem; border-bottom: 2px solid var(--border); font-size: 0.85rem; white-space: nowrap; cursor: pointer; user-select: none; }
+.admin-table th:hover { color: var(--gold); }
+.admin-table th.sorted-asc::after  { content: ' ▲'; color: var(--gold); }
+.admin-table th.sorted-desc::after { content: ' ▼'; color: var(--gold); }
+.admin-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: middle; }
+.admin-table tr:hover td { background: var(--bg3); }
+.badge { padding: 0.2rem 0.6rem; font-size: 0.72rem; border-radius: 2px; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; }
+.badge-ativo      { background: rgba(58,125,68,0.15); color: var(--green2); border: 1px solid var(--green); }
+.badge-esgotado   { background: rgba(224,82,82,0.15);  color: var(--red);    border: 1px solid var(--red); }
+.badge-inativo    { background: #1a1a1a; color: var(--muted); border: 1px solid var(--border); }
+.badge-pendente   { background: #3a2a00; color: #f0a500; }
+.badge-confirmado { background: #002a10; color: #00cc66; }
+.badge-cancelado  { background: #2a0000; color: var(--red); }
+.badge-breeder    { background: rgba(58,125,68,0.12); color: var(--green2); border: 1px solid var(--green); }
+.action-group { display: flex; gap: 0.4rem; }
+.btn-sm { border: none; padding: 0.3rem 0.6rem; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.btn-sm-red  { background: transparent; color: var(--red);  border: 1px solid var(--red);  }
+.btn-sm-red:hover  { background: var(--red);  color: #fff; }
+.btn-sm-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+.btn-sm-gold:hover { background: var(--gold); color: #000; }
+ 
+/* PEDIDOS */
+.pedido-row { cursor: pointer; }
+.pedido-detail-row { display: none; }
+.pedido-detail-row.open { display: table-row; }
+.pedido-detail-cell { background: var(--bg3); padding: 1.2rem 1.5rem; }
+.pedido-items-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.8rem 0; }
+.pedido-item { display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; }
+.pedido-item img { width: 36px; height: 36px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); }
+.status-select { background: var(--bg2); border: 1px solid var(--border); color: var(--white); padding: 0.35rem 0.6rem; font-family: 'Barlow Condensed'; font-size: 0.85rem; border-radius: 2px; cursor: pointer; }
+.status-select:focus { border-color: var(--gold); outline: none; }
+ 
+/* DESTINATARIO GRID */
+.dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1.5rem; margin: 0.8rem 0; }
+@media (max-width: 600px) { .dest-grid { grid-template-columns: 1fr; } }
+.dest-field { background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; padding: 0.5rem 0.8rem; }
+.dest-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+.dest-value { font-size: 0.88rem; color: var(--white); font-weight: 500; }
+ 
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 1rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 480px; padding: 2rem; position: relative; border-radius: 4px; max-height: 90vh; overflow-y: auto; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: var(--white); }
+.modal h3 { font-family: 'Barlow Condensed'; font-size: 1.4rem; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+.form-group { margin-bottom: 0.9rem; }
+.form-group label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; letter-spacing: 0.05em; }
+.form-group input { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.65rem 1rem; font-size: 0.9rem; outline: none; border-radius: 2px; font-family: 'Barlow'; transition: border-color 0.2s; }
+.form-group input:focus { border-color: var(--gold); }
+.form-row-btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.btn-submit { background: var(--green); color: #fff; border: none; padding: 0.65rem 1.4rem; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; font-size: 0.95rem; transition: background 0.2s; }
+.btn-submit:hover { background: var(--green2); }
+.btn-cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 0.65rem 1rem; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; font-size: 0.95rem; transition: all 0.2s; }
+.btn-cancel:hover { border-color: var(--white); color: var(--white); }
+ 
+/* FUNÇÕES CHECKBOXES */
+.roles-wrap { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.role-check { display: flex; align-items: center; gap: 0.5rem; background: var(--bg3); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; transition: all 0.2s; user-select: none; }
+.role-check:has(input:checked) { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.role-check input { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; }
+.role-check span { font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; }
+ 
+/* ESTADO VAZIO / ERRO */
+.state-msg { color: var(--muted); text-align: center; padding: 2.5rem; font-size: 0.9rem; }
+.state-err { color: var(--red);   text-align: center; padding: 2.5rem; font-size: 0.9rem; }
+ 
+/* PEDIDO MODAL */
+.modal-pedido { max-width: 660px; }
+.subpedido-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 1rem; overflow: hidden; }
+.subpedido-header { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+.subpedido-id { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 1rem; color: var(--gold); }
+.subpedido-vendedor { font-size: 0.78rem; color: var(--muted); }
+.subpedido-body { padding: 0.8rem 1rem; }
+.subpedido-total { font-family: 'Barlow Condensed'; font-weight: 700; color: var(--gold); font-size: 0.9rem; margin-top: 0.5rem; text-align: right; }
+.pedido-section-title { font-family: 'Barlow Condensed'; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gold); margin: 1.2rem 0 0.6rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.pedido-modal-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.pedido-modal-item:last-child { border-bottom: none; }
+.pedido-modal-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; }
+.pedido-total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0 0; margin-top: 0.5rem; border-top: 2px solid var(--border); }
+.pedido-total-row span:first-child { font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: var(--muted); }
+.pedido-total-row span:last-child  { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 1.4rem; color: var(--gold); }
+ 
+@media (max-width: 600px) {
+  nav { padding: 0 1rem; }
+  .admin-container { padding: 0 1rem; }
+  .section-toolbar { padding: 0.8rem 1rem; }
+  .users-list { padding: 0.8rem 1rem; }
+  .modal { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <div class="nav-logo"><h2>PAINEL <span style="color:var(--red)">ADMIN</span></h2></div>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-link-btn">🏠 Loja</a>
+    <button class="logout-btn" onclick="window.fazerLogout()">Sair</button>
+  </div>
+</nav>
+ 
+<div class="admin-container">
+ 
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-card-label">Usuários</div>
+      <div class="stat-card-value" id="stat-usuarios">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Genéticas</div>
+      <div class="stat-card-value" id="stat-geneticas">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Produtos Loja</div>
+      <div class="stat-card-value" id="stat-produtos">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Pedidos</div>
+      <div class="stat-card-value" id="stat-pedidos">—</div>
+    </div>
+  </div>
+ 
+  <!-- USUÁRIOS -->
+  <div class="section-collapsible open" id="sec-usuarios">
+    <div class="section-toggle" onclick="toggleSection('sec-usuarios')">
+      <h3>👥 Gestão de Usuários</h3>
+      <div class="section-toggle-right">
+        <span class="section-count" id="count-usuarios"></span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="section-toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-usuarios" placeholder="Buscar por nome, email ou função..." oninput="filtrarUsuarios()">
+        </div>
+        <select id="filter-role" onchange="filtrarUsuarios()" style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:0.4rem 0.8rem;font-family:'Barlow Condensed';border-radius:2px;cursor:pointer;">
+          <option value="">Todas as funções</option>
+          <option value="breeder">Breeders</option>
+          <option value="vendedor">Vendedores</option>
+          <option value="sem-role">Sem função</option>
+        </select>
+      </div>
+      <div class="users-list" id="usuarios-list">
+        <div class="state-msg">Carregando usuários...</div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- GENÉTICAS -->
+  <div class="section-collapsible" id="sec-geneticas">
+    <div class="section-toggle" onclick="toggleSection('sec-geneticas')">
+      <h3>🌿 Genéticas</h3>
+      <div class="section-toggle-right">
+        <span class="section-count" id="count-geneticas"></span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="section-toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-geneticas" placeholder="Buscar por nome ou breeder..." oninput="filtrarTabela('geneticas')">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th onclick="ordenarTabela('geneticas','name')">Nome</th>
+              <th onclick="ordenarTabela('geneticas','breederNome')">Breeder</th>
+              <th onclick="ordenarTabela('geneticas','price')">Preço</th>
+              <th onclick="ordenarTabela('geneticas','estoque')">Estoque</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-geneticas">
+            <tr><td colspan="6" class="state-msg">Abra a seção para carregar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- PRODUTOS DA LOJA -->
+  <div class="section-collapsible" id="sec-produtos">
+    <div class="section-toggle" onclick="toggleSection('sec-produtos')">
+      <h3>🛍️ Produtos da Loja</h3>
+      <div class="section-toggle-right">
+        <span class="section-count" id="count-produtos"></span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="section-toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-produtos" placeholder="Buscar por nome ou vendedor..." oninput="filtrarTabela('produtos')">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th onclick="ordenarTabela('produtos','name')">Nome</th>
+              <th onclick="ordenarTabela('produtos','vendedorNome')">Vendedor</th>
+              <th onclick="ordenarTabela('produtos','categoria')">Categoria</th>
+              <th onclick="ordenarTabela('produtos','price')">Preço</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-produtos">
+            <tr><td colspan="5" class="state-msg">Abra a seção para carregar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- PEDIDOS -->
+  <!-- PUBLICIDADE -->
+  <div class="section-collapsible" id="sec-publicidade">
+    <div class="section-toggle" onclick="toggleSection('sec-publicidade')">
+      <h3>📢 Publicidade</h3>
+      <div class="section-toggle-right">
+        <span class="section-count" id="count-publicidade"></span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="section-toolbar">
+        <button class="btn-add" onclick="window.abrirModalPublicidade()">+ Adicionar Publicidade</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Banner</th>
+              <th>Nome</th>
+              <th>Link</th>
+              <th>Validade</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-publicidade">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-collapsible" id="sec-pedidos">
+    <div class="section-toggle" onclick="toggleSection('sec-pedidos')">
+      <h3>📦 Pedidos</h3>
+      <div class="section-toggle-right">
+        <span class="section-count" id="count-pedidos"></span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="section-toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-pedidos" placeholder="Buscar por ID, email ou status..." oninput="filtrarTabela('pedidos')">
+        </div>
+        <select id="filter-status-pedido" onchange="filtrarTabela('pedidos')" style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:0.4rem 0.8rem;font-family:'Barlow Condensed';border-radius:2px;cursor:pointer;">
+          <option value="">Todos os status</option>
+          <option value="pendente">⏳ Pendente</option>
+          <option value="confirmado">✅ Confirmado</option>
+          <option value="cancelado">❌ Cancelado</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Pedido</th>
+              <th onclick="ordenarTabela('pedidos','userEmail')">Cliente</th>
+              <th onclick="ordenarTabela('pedidos','total')">Total</th>
+              <th onclick="ordenarTabela('pedidos','criadoEm')">Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pedidos">
+            <tr><td colspan="6" class="state-msg">Abra a seção para carregar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+</div>
+ 
+<!-- MODAL FUNÇÕES -->
+<div class="modal-overlay" id="modal-roles">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal('modal-roles')">&times;</button>
+    <h3>Gerenciar Funções</h3>
+    <input type="hidden" id="roles-uid">
+    <div class="form-group" style="margin-bottom:0.5rem">
+      <label>Usuário</label>
+      <div id="roles-user-info" style="font-family:'Barlow Condensed';font-size:1rem;padding:0.5rem 0;color:var(--white)"></div>
+    </div>
+    <div class="form-group">
+      <label>Funções atribuídas</label>
+      <div class="roles-wrap">
+        <label class="role-check">
+          <input type="checkbox" id="role-breeder" value="breeder">
+          <span style="color:var(--green2)">🌿 Breeder</span>
+        </label>
+        <label class="role-check">
+          <input type="checkbox" id="role-vendedor" value="vendedor">
+          <span style="color:#7eb8f7">🏷️ Vendedor</span>
+        </label>
+      </div>
+    </div>
+    <div class="form-row-btns">
+      <button class="btn-submit" onclick="salvarRoles()">Salvar Roles</button>
+      <button class="btn-cancel" onclick="fecharModal('modal-roles')">Cancelar</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- MODAL VER PEDIDO -->
+<div class="modal-overlay" id="modal-pedido">
+  <div class="modal modal-pedido">
+    <button class="modal-close" onclick="fecharModal('modal-pedido')">&times;</button>
+    <h3>Pedido <span id="mp-id" style="color:var(--white)"></span></h3>
+
+    <div class="pedido-section-title">Destinatário</div>
+    <div class="dest-grid">
+      <div class="dest-field"><div class="dest-label">Nome</div><div class="dest-value" id="mp-nome">—</div></div>
+      <div class="dest-field"><div class="dest-label">Email</div><div class="dest-value" id="mp-email">—</div></div>
+      <div class="dest-field"><div class="dest-label">Telefone</div><div class="dest-value" id="mp-telefone">—</div></div>
+      <div class="dest-field"><div class="dest-label">CPF</div><div class="dest-value" id="mp-cpf">—</div></div>
+      <div class="dest-field" style="grid-column:1/-1"><div class="dest-label">Endereço</div><div class="dest-value" id="mp-endereco">—</div></div>
+      <div class="dest-field"><div class="dest-label">CEP</div><div class="dest-value" id="mp-cep">—</div></div>
+      <div class="dest-field"><div class="dest-label">Cidade / UF</div><div class="dest-value" id="mp-cidade">—</div></div>
+    </div>
+
+    <div class="pedido-section-title">Subpedidos</div>
+    <div id="mp-subpedidos">
+      <!-- Subpedidos carregados dinamicamente -->
+    </div>
+
+    <div class="pedido-section-title">Todos os Itens</div>
+    <div id="mp-itens"></div>
+
+    <div class="pedido-total-row">
+      <span>Total Geral</span>
+      <span id="mp-total"></span>
+    </div>
+
+    <div class="pedido-section-title">Status do Pedido Master</div>
+    <div style="display:flex;align-items:center;gap:0.8rem;margin-top:0.2rem">
+      <select class="status-select" id="mp-status-select" style="flex:1">
+        <option value="pendente">⏳ Pendente</option>
+        <option value="pago">💰 Pago</option>
+        <option value="confirmado">✅ Confirmado</option>
+        <option value="cancelado">❌ Cancelado</option>
+      </select>
+      <button class="btn-submit" onclick="salvarStatusModal()" style="padding:0.5rem 1.2rem">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, setDoc, addDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+ 
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAJTlL-4piG67VOM_y480dhyib2qaF3Bso",
+    authDomain: "phenobrasil.firebaseapp.com",
+    projectId: "phenobrasil",
+    storageBucket: "phenobrasil.firebasestorage.app",
+    messagingSenderId: "825755980394",
+    appId: "1:825755980394:web:caad888821d128fb133013"
+  };
+
+
+  // ── ADMINS (UIDs fixos) ───────────────────────────────────
+  const ADMIN_UIDS = [
+    'nXQDSUS3gjQNZ40zM8g7N455Nyk2',
+    'PyT60zd4APf2woeWvKsbKRsg77a2'
+  ];
+ 
+  const app     = initializeApp(firebaseConfig);
+  const auth    = getAuth(app);
+  const db      = getFirestore(app);
+
+ 
+  let executandoLogout = false;
+  let todosUsuarios    = [];
+  let pedidoModalAtual = null;
+ 
+  const dados      = { geneticas: [], produtos: [], pedidos: [] };
+  const ordemAtual = { geneticas: {}, produtos: {}, pedidos: {} };
+  const carregado  = { geneticas: false, produtos: false, pedidos: false, usuarios: false };
+
+  // Toast local (admin não usa nav.js)
+  const showToast = (msg, tipo = 'ok') => {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = `position:fixed;bottom:2rem;right:2rem;background:${tipo==='erro'?'var(--red)':'var(--green)'};color:#fff;padding:0.8rem 1.5rem;border-radius:4px;font-family:'Barlow Condensed';font-weight:700;font-size:1rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4)`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  };
+
+  // Comprime imagem e converte para base64 (max 800px largura, qualidade 0.7)
+  const comprimirImagem = (file, maxW = 1200, qualidade = 0.75) => new Promise((res, rej) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      res(canvas.toDataURL('image/jpeg', qualidade));
+    };
+    img.onerror = () => rej(new Error('Erro ao carregar imagem'));
+    img.src = url;
+  });
+ 
+  // ── HELPERS UI ────────────────────────────────────────────
+  window.toggleSection = (id) => {
+    const sec = document.getElementById(id);
+    sec.classList.toggle('open');
+    const key = id.replace('sec-', '');
+    if (sec.classList.contains('open') && !carregado[key]) {
+      if (key === 'geneticas')    carregarGenéticas();
+      if (key === 'produtos')     carregarProdutos();
+      if (key === 'pedidos')      carregarPedidos();
+      if (key === 'publicidade')  carregarPublicidade();
+    }
+  };
+ 
+  window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
+ 
+  // ── AUTH ──────────────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (user && ADMIN_UIDS.includes(user.uid)) {
+      carregarUsuarios();
+      carregarStats();
+    } else if (user) {
+      alert("Acesso negado.");
+      location.href = 'index.html';
+    } else {
+      if (!executandoLogout) location.href = 'index.html';
+    }
+  });
+ 
+  window.fazerLogout = async () => {
+    try { executandoLogout = true; await signOut(auth); location.href = 'index.html'; }
+    catch (_) { executandoLogout = false; }
+  };
+ 
+  // ── STATS ─────────────────────────────────────────────────
+  const carregarStats = async () => {
+    try {
+      const [u, g, p, ped] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "products")),
+        getDocs(collection(db, "loja_produtos")),
+        getDocs(collection(db, "pedidos"))
+      ]);
+      document.getElementById('stat-usuarios').textContent  = u.size; // atualizado em carregarUsuarios
+      document.getElementById('stat-geneticas').textContent = g.size;
+      document.getElementById('stat-produtos').textContent  = p.size;
+      document.getElementById('stat-pedidos').textContent   = ped.size;
+    } catch (_) {}
+  };
+ 
+  // ── USUÁRIOS ──────────────────────────────────────────────
+  const carregarUsuarios = async () => {
+    const container = document.getElementById('usuarios-list');
+    container.innerHTML = '<div class="state-msg">Carregando...</div>';
+    try {
+      // Busca as duas coleções e faz merge por uid
+      const [snapUsers, snapUsuarios] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "usuarios")),
+      ]);
+      const mapa = {};
+      snapUsers.docs.forEach(d => { mapa[d.id] = { uid: d.id, _colecao: 'users', ...d.data() }; });
+      snapUsuarios.docs.forEach(d => {
+        if (mapa[d.id]) {
+          // merge: dados de usuarios sobrescrevem onde existirem
+          mapa[d.id] = { ...mapa[d.id], ...d.data(), uid: d.id };
+        } else {
+          mapa[d.id] = { uid: d.id, _colecao: 'usuarios', ...d.data() };
+        }
+      });
+      todosUsuarios = Object.values(mapa);
+      document.getElementById('count-usuarios').textContent = `${todosUsuarios.length} usuário${todosUsuarios.length !== 1 ? 's' : ''}`;
+      carregado.usuarios = true;
+      renderUsuarios(todosUsuarios);
+    } catch (e) {
+      container.innerHTML = `<div class="state-err">Erro: ${e.message}</div>`;
+    }
+  };
+ 
+  const getRolesUsuario = (u) => {
+    const roles = [];
+    if (u.roles?.includes('breeder') || u.role === 'breeder') roles.push('breeder');
+    if (u.roles?.includes('vendedor') || u.role === 'vendedor') roles.push('vendedor');
+    return roles;
+  };
+ 
+  const renderUsuarios = (lista) => {
+    const container = document.getElementById('usuarios-list');
+    if (!lista.length) {
+      container.innerHTML = '<div class="state-msg">Nenhum usuário encontrado.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    lista.forEach(u => {
+      const roles   = getRolesUsuario(u);
+      const inicial = (u.name || u.email || 'U').charAt(0).toUpperCase();
+      const isAdmin = ADMIN_UIDS.includes(u.uid);
+ 
+      const rolesHtml = roles.length
+        ? roles.map(r => `<span class="role-tag ${r}">${r}</span>`).join('')
+        : '<span style="font-size:0.72rem;color:var(--muted)">sem função</span>';
+ 
+      const adminBadge = isAdmin ? `<span style="font-size:0.65rem;background:#2a0a0a;color:var(--red);padding:0.1rem 0.45rem;border-radius:2px;border:1px solid var(--red);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;">ADMIN</span>` : '';
+ 
+      const div = document.createElement('div');
+      div.className = 'user-item';
+      div.innerHTML = `
+        <div class="user-avatar">${u.photo ? `<img src="${u.photo}" alt="">` : inicial}</div>
+        <div class="user-info">
+          <h4>${u.name || 'Sem nome'} ${adminBadge}</h4>
+          <p>${u.email || '—'}</p>
+          <div class="user-roles">${rolesHtml}</div>
+        </div>
+        <div class="user-controls">
+          ${!isAdmin ? `<button class="btn-action btn-roles" onclick="abrirModalRoles('${u.uid}')">Função</button>` : ''}
+          ${!isAdmin ? `<button class="btn-action btn-delete" onclick="removerUsuario('${u.uid}')">Remover</button>` : ''}
+        </div>`;
+      container.appendChild(div);
+    });
+  };
+ 
+  window.filtrarUsuarios = () => {
+    const busca      = document.getElementById('search-usuarios').value.toLowerCase();
+    const roleFilter = document.getElementById('filter-role').value;
+    let lista = todosUsuarios.filter(u => {
+      const texto = `${u.name || ''} ${u.email || ''}`.toLowerCase();
+      if (!texto.includes(busca)) return false;
+      if (!roleFilter) return true;
+      const roles = getRolesUsuario(u);
+      if (roleFilter === 'sem-role') return roles.length === 0;
+      return roles.includes(roleFilter);
+    });
+    renderUsuarios(lista);
+  };
+ 
+  // ── MODAL ROLES ───────────────────────────────────────────
+  window.abrirModalRoles = (uid) => {
+    const u = todosUsuarios.find(u => u.uid === uid);
+    if (!u) return;
+    const roles = getRolesUsuario(u);
+    document.getElementById('roles-uid').value = uid;
+    document.getElementById('roles-user-info').textContent = `${u.name || 'Sem nome'} — ${u.email || ''}`;
+    document.getElementById('role-breeder').checked  = roles.includes('breeder');
+    document.getElementById('role-vendedor').checked = roles.includes('vendedor');
+    document.getElementById('modal-roles').classList.add('open');
+  };
+ 
+  window.salvarRoles = async () => {
+    const uid     = document.getElementById('roles-uid').value;
+    const breeder = document.getElementById('role-breeder').checked;
+    const vendedor= document.getElementById('role-vendedor').checked;
+    const roles   = [];
+    if (breeder)  roles.push('breeder');
+    if (vendedor) roles.push('vendedor');
+ 
+    try {
+      const update = { roles };
+      // Mantém role singular para compatibilidade
+      if (roles.length === 1) update.role = roles[0];
+      else if (roles.length === 0) update.role = null;
+      else update.role = 'breeder'; // dual — primary é breeder
+ 
+      // setDoc com merge para não falhar se doc não existir ainda
+      await setDoc(doc(db, "users", uid), update, { merge: true });
+ 
+      // Atualiza local
+      const idx = todosUsuarios.findIndex(u => u.uid === uid);
+      if (idx !== -1) { todosUsuarios[idx].roles = roles; todosUsuarios[idx].role = update.role; }
+ 
+      fecharModal('modal-roles');
+      filtrarUsuarios();
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+ 
+  window.removerUsuario = async (uid) => {
+    if (!confirm("Remover este usuário do sistema?")) return;
+    try {
+      await deleteDoc(doc(db, "users", uid));
+      todosUsuarios = todosUsuarios.filter(u => u.uid !== uid);
+      document.getElementById('count-usuarios').textContent = `${todosUsuarios.length} usuários`;
+      filtrarUsuarios();
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+ 
+  // ── ORDENAÇÃO / BUSCA ─────────────────────────────────────
+  window.ordenarTabela = (tipo, campo) => {
+    const ord = ordemAtual[tipo];
+    const asc = ord.campo === campo ? !ord.asc : true;
+    ordemAtual[tipo] = { campo, asc };
+    document.querySelectorAll(`[onclick*="ordenarTabela('${tipo}'"]`).forEach(th => {
+      th.classList.remove('sorted-asc', 'sorted-desc');
+      if (th.getAttribute('onclick').includes(`'${campo}'`))
+        th.classList.add(asc ? 'sorted-asc' : 'sorted-desc');
+    });
+    renderTabela(tipo);
+  };
+ 
+  window.filtrarTabela = (tipo) => renderTabela(tipo);
+ 
+  const getFiltrado = (tipo) => {
+    const busca = document.getElementById(`search-${tipo}`)?.value.toLowerCase() || '';
+    let lista = dados[tipo].filter(d => JSON.stringify(d).toLowerCase().includes(busca));
+    // Filtro de status para pedidos
+    if (tipo === 'pedidos') {
+      const sf = document.getElementById('filter-status-pedido')?.value;
+      if (sf) lista = lista.filter(p => p.status === sf);
+    }
+    return lista;
+  };
+ 
+  const renderTabela = (tipo) => {
+    let lista = getFiltrado(tipo);
+    const ord = ordemAtual[tipo];
+    if (ord.campo) {
+      lista = [...lista].sort((a, b) => {
+        let va = a[ord.campo] ?? '', vb = b[ord.campo] ?? '';
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        return ord.asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+      });
+    }
+    if (tipo === 'geneticas') renderGenéticasTabela(lista);
+    if (tipo === 'produtos')  renderProdutosTabela(lista);
+    if (tipo === 'pedidos')   renderPedidosTabela(lista);
+  };
+ 
+  // ── GENÉTICAS ─────────────────────────────────────────────
+  const carregarGenéticas = async () => {
+    document.getElementById('tbody-geneticas').innerHTML = '<tr><td colspan="6" class="state-msg">Carregando...</td></tr>';
+    try {
+      const [usersSnap, prodsSnap] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "products"))
+      ]);
+      const mapaBreeders = {};
+      usersSnap.forEach(d => {
+        const u = d.data();
+        mapaBreeders[d.id] = u.name || u.email || '—';
+        if (u.email) mapaBreeders[u.email.toLowerCase()] = u.name || u.email;
+      });
+      dados.geneticas = prodsSnap.docs.map(d => {
+        const p = d.data();
+        return { id: d.id, ...p,
+          breederNome: mapaBreeders[p.breederUid] || mapaBreeders[(p.breederEmail||'').toLowerCase()] || '—'
+        };
+      });
+      document.getElementById('count-geneticas').textContent = `${dados.geneticas.length} genéticas`;
+      carregado.geneticas = true;
+      renderTabela('geneticas');
+    } catch (e) {
+      document.getElementById('tbody-geneticas').innerHTML = `<tr><td colspan="6" class="state-err">${e.message}</td></tr>`;
+    }
+  };
+ 
+  const renderGenéticasTabela = (lista) => {
+    const tbody = document.getElementById('tbody-geneticas');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="6" class="state-msg">Nenhuma genética encontrada.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(p => `
+      <tr>
+        <td style="font-weight:600;text-transform:uppercase">${p.name}</td>
+        <td><span class="badge badge-breeder">${p.breederNome}</span></td>
+        <td style="color:var(--gold);font-weight:700">R$ ${(p.price||0).toFixed(2).replace('.',',')}</td>
+        <td style="color:${p.estoque===0?'var(--red)':p.estoque<=3?'var(--gold)':'var(--green2)'}">
+          ${p.estoque !== undefined ? p.estoque : '—'}
+        </td>
+        <td><span class="badge badge-${p.status||'ativo'}">${p.status||'ativo'}</span></td>
+        <td><div class="action-group">
+          <button class="btn-sm btn-sm-red" onclick="deletarStrain('${p.id}')">Excluir</button>
+        </div></td>
+      </tr>`).join('');
+  };
+ 
+  window.deletarStrain = async (id) => {
+    if (!confirm("Apagar esta genética permanentemente?")) return;
+    try {
+      await deleteDoc(doc(db, "products", id));
+      dados.geneticas = dados.geneticas.filter(p => p.id !== id);
+      document.getElementById('count-geneticas').textContent = `${dados.geneticas.length} genéticas`;
+      renderTabela('geneticas');
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+ 
+  // ── PRODUTOS DA LOJA ──────────────────────────────────────
+  const carregarProdutos = async () => {
+    document.getElementById('tbody-produtos').innerHTML = '<tr><td colspan="5" class="state-msg">Carregando...</td></tr>';
+    try {
+      const [usersSnap, prodsSnap] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "loja_produtos"))
+      ]);
+      const mapaVendedores = {};
+      usersSnap.forEach(d => { mapaVendedores[d.id] = d.data().name || d.data().email || '—'; });
+      dados.produtos = prodsSnap.docs.map(d => ({
+        id: d.id, ...d.data(),
+        vendedorNome: mapaVendedores[d.data().vendedorUid] || d.data().vendedorEmail || '—'
+      }));
+      document.getElementById('count-produtos').textContent = `${dados.produtos.length} produtos`;
+      carregado.produtos = true;
+      renderTabela('produtos');
+    } catch (e) {
+      document.getElementById('tbody-produtos').innerHTML = `<tr><td colspan="5" class="state-err">${e.message}</td></tr>`;
+    }
+  };
+ 
+  const renderProdutosTabela = (lista) => {
+    const tbody = document.getElementById('tbody-produtos');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" class="state-msg">Nenhum produto encontrado.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(p => `
+      <tr>
+        <td style="font-weight:600;text-transform:uppercase">${p.name}</td>
+        <td>${p.vendedorNome}</td>
+        <td>${p.categoria || '—'}</td>
+        <td style="color:var(--gold);font-weight:700">R$ ${(p.price||0).toFixed(2).replace('.',',')}</td>
+        <td><div class="action-group">
+          <button class="btn-sm btn-sm-red" onclick="deletarProduto('${p.id}')">Excluir</button>
+        </div></td>
+      </tr>`).join('');
+  };
+ 
+  window.deletarProduto = async (id) => {
+    if (!confirm("Apagar este produto permanentemente?")) return;
+    try {
+      await deleteDoc(doc(db, "loja_produtos", id));
+      dados.produtos = dados.produtos.filter(p => p.id !== id);
+      document.getElementById('count-produtos').textContent = `${dados.produtos.length} produtos`;
+      renderTabela('produtos');
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+ 
+  // ── PEDIDOS ───────────────────────────────────────────────
+  const CF_URL = 'https://us-central1-phenobrasil.cloudfunctions.net';
+
+  const carregarPedidos = async () => {
+    document.getElementById('tbody-pedidos').innerHTML = '<tr><td colspan="6" class="state-msg">Carregando...</td></tr>';
+    try {
+      // Usa Cloud Function para descriptografar dados sensíveis (LGPD)
+      const user = auth.currentUser;
+      const resp = await fetch(`${CF_URL}/buscarTodosPedidos`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ uid: user.uid })
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error || 'Erro ao buscar pedidos');
+
+      dados.pedidos = data.pedidos;
+      document.getElementById('count-pedidos').textContent = `${dados.pedidos.length} pedidos`;
+      carregado.pedidos = true;
+      renderTabela('pedidos');
+    } catch (e) {
+      document.getElementById('tbody-pedidos').innerHTML = `<tr><td colspan="6" class="state-err">${e.message}</td></tr>`;
+    }
+  };
+ 
+  const renderPedidosTabela = (lista) => {
+    const tbody = document.getElementById('tbody-pedidos');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="6" class="state-msg">Nenhum pedido encontrado.</td></tr>'; return; }
+    tbody.innerHTML = '';
+    lista.forEach(p => {
+      const data     = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleDateString('pt-BR') : '—';
+      const hora     = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '';
+      const badgeMap = { pendente: 'badge-pendente', confirmado: 'badge-confirmado', cancelado: 'badge-cancelado' };
+      const badgeCls = badgeMap[p.status] || 'badge-pendente';
+ 
+      const dest = p.destinatario || {};
+      const nomeCliente = dest.nome || p.userEmail || '—';
+ 
+      const tr = document.createElement('tr');
+      tr.className = 'pedido-row';
+      tr.innerHTML = `
+        <td><strong style="font-family:'Barlow Condensed'">#${p.id.slice(-6).toUpperCase()}</strong></td>
+        <td style="font-size:0.82rem;color:var(--muted)">${nomeCliente}</td>
+        <td style="color:var(--gold);font-weight:700;font-family:'Barlow Condensed'">R$ ${(p.total||0).toFixed(2).replace('.',',')}</td>
+        <td style="font-size:0.82rem">${data} ${hora}</td>
+        <td><span class="badge ${badgeCls}">${p.status||'pendente'}</span></td>
+        <td><button class="btn-sm btn-sm-gold" onclick="abrirModalPedido('${p.id}');event.stopPropagation()">Ver</button></td>`;
+      tbody.appendChild(tr);
+    });
+  };
+ 
+  // ── MODAL PEDIDO ──────────────────────────────────────────
+  window.abrirModalPedido = async (id) => {
+    const p = dados.pedidos.find(p => p.id === id);
+    if (!p) return;
+    pedidoModalAtual = p;
+
+    const dest = p.destinatario || {};
+
+    document.getElementById('mp-id').textContent = `#${p.id.slice(-6).toUpperCase()} (Master)`;
+    document.getElementById('mp-nome').textContent     = dest.nome      || p.userEmail || '—';
+    document.getElementById('mp-email').textContent    = dest.email     || p.userEmail || '—';
+    document.getElementById('mp-telefone').textContent = dest.telefone  || '—';
+    document.getElementById('mp-cpf').textContent      = dest.cpf       || '—';
+    document.getElementById('mp-cep').textContent      = dest.cep       || '—';
+
+    const endereco = [dest.rua, dest.numero, dest.complemento, dest.bairro].filter(Boolean).join(', ') || '—';
+    document.getElementById('mp-endereco').textContent = endereco;
+
+    const cidade = [dest.cidade, dest.estado].filter(Boolean).join(' / ') || '—';
+    document.getElementById('mp-cidade').textContent = cidade;
+
+    // Subpedidos — busca subcoleção no Firestore
+    const subEl = document.getElementById('mp-subpedidos');
+    subEl.innerHTML = '<div class="state-msg" style="padding:1rem">Carregando subpedidos...</div>';
+
+    try {
+      // Busca mapa de nomes de usuários para resolver UIDs
+      let mapaUsers = {};
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        usersSnap.forEach(d => { mapaUsers[d.id] = d.data().nome || d.data().name || d.data().email || d.id; });
+      } catch (_) {}
+
+      const subSnap = await getDocs(collection(db, 'pedidos', id, 'subpedidos'));
+      if (subSnap.empty) {
+        // Tenta mostrar subpedidos do campo subpedidos[] no doc master
+        const subArray = p.subpedidos || [];
+        if (subArray.length) {
+          subEl.innerHTML = subArray.map((sub, idx) => {
+            const badgeMap = { pendente: 'badge-pendente', pago: 'badge-confirmado', confirmado: 'badge-confirmado', cancelado: 'badge-cancelado' };
+            const badgeCls = badgeMap[sub.status] || 'badge-pendente';
+            return `
+              <div class="subpedido-block">
+                <div class="subpedido-header">
+                  <div>
+                    <div class="subpedido-id">#${p.id.slice(-6).toUpperCase()}-0${idx+1}</div>
+                    <div class="subpedido-vendedor">🏷️ ${sub.vendedorNome || '—'}</div>
+                  </div>
+                  <span class="badge ${badgeCls}">${sub.status || 'pendente'}</span>
+                </div>
+                <div class="subpedido-body">
+                  <div class="subpedido-total">Total: R$ ${(sub.total||0).toFixed(2).replace('.',',')}</div>
+                </div>
+              </div>`;
+          }).join('');
+        } else {
+          subEl.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:0.5rem 0">Pedido sem subpedidos registrados.</div>';
+        }
+      } else {
+        const subs = subSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.id.localeCompare(b.id));
+
+        subEl.innerHTML = subs.map(sub => {
+          const badgeMap = { pendente: 'badge-pendente', pago: 'badge-confirmado', confirmado: 'badge-confirmado', cancelado: 'badge-cancelado' };
+          const badgeCls = badgeMap[sub.status] || 'badge-pendente';
+          const pagoEm   = sub.pagoEm?.toDate ? sub.pagoEm.toDate().toLocaleString('pt-BR') : null;
+
+          return `
+            <div class="subpedido-block">
+              <div class="subpedido-header">
+                <div>
+                  <div class="subpedido-id">#${p.id.slice(-6).toUpperCase()}-${sub.id}</div>
+                  <div class="subpedido-vendedor">🏷️ ${sub.vendedorNome || mapaUsers[sub.vendedorUid] || '—'}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                  <select class="status-select" onchange="salvarStatusSubpedido('${id}','${sub.id}',this.value)" style="font-size:0.78rem;padding:0.2rem 0.5rem">
+                    <option value="pendente"  ${sub.status==='pendente'  ?'selected':''}>⏳ Pendente</option>
+                    <option value="pago"      ${sub.status==='pago'      ?'selected':''}>💰 Pago</option>
+                    <option value="confirmado"${sub.status==='confirmado'?'selected':''}>✅ Confirmado</option>
+                    <option value="cancelado" ${sub.status==='cancelado' ?'selected':''}>❌ Cancelado</option>
+                  </select>
+                </div>
+              </div>
+              <div class="subpedido-body">
+                ${pagoEm ? `<div style="font-size:0.75rem;color:var(--green2);margin-bottom:0.3rem">💰 Pago em ${pagoEm}</div>` : ''}
+                <div class="subpedido-total">Total: R$ ${(sub.valor||sub.total||0).toFixed(2).replace('.',',')}</div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+    } catch (err) {
+      subEl.innerHTML = `<div style="color:var(--red);font-size:0.82rem">${err.message}</div>`;
+    }
+
+    // Itens do pedido master
+    const itensEl = document.getElementById('mp-itens');
+    itensEl.innerHTML = (p.itens || []).map(i => `
+      <div class="pedido-modal-item">
+        ${i.image ? `<img src="${i.image}" alt="">` : '<div style="width:40px;height:40px;background:var(--bg3);border-radius:2px;flex-shrink:0"></div>'}
+        <div style="flex:1">
+          <div style="font-weight:600;text-transform:uppercase;font-size:0.88rem">${i.name}</div>
+          <div style="font-size:0.78rem;color:var(--muted)">${i.qty}x · R$ ${(i.price||0).toFixed(2).replace('.',',')}</div>
+        </div>
+        <div style="font-family:'Barlow Condensed';font-weight:700;color:var(--gold)">R$ ${((i.price||0)*(i.qty||1)).toFixed(2).replace('.',',')}</div>
+      </div>`).join('');
+
+    document.getElementById('mp-total').textContent = `R$ ${(p.total||0).toFixed(2).replace('.',',')}`;
+    document.getElementById('mp-status-select').value = p.status || 'pendente';
+
+    document.getElementById('modal-pedido').classList.add('open');
+  };
+
+  // Salvar status individual de subpedido
+  window.salvarStatusSubpedido = async (pedidoId, subId, novoStatus) => {
+    try {
+      await updateDoc(doc(db, 'pedidos', pedidoId, 'subpedidos', subId), { status: novoStatus });
+    } catch (e) { alert('Erro ao salvar status: ' + e.message); }
+  };
+ 
+  window.salvarStatusModal = async () => {
+    if (!pedidoModalAtual) return;
+    const novoStatus   = document.getElementById('mp-status-select').value;
+    const statusAnterior = pedidoModalAtual.status;
+    const id = pedidoModalAtual.id;
+ 
+    try {
+      await updateDoc(doc(db, "pedidos", id), { status: novoStatus });
+      pedidoModalAtual.status = novoStatus;
+ 
+      // Atualiza na lista local
+      const pedido = dados.pedidos.find(p => p.id === id);
+      if (pedido) pedido.status = novoStatus;
+ 
+      // Desconto de estoque ao confirmar
+      if (novoStatus === 'confirmado' && statusAnterior !== 'confirmado' && pedidoModalAtual.itens?.length) {
+        for (const item of pedidoModalAtual.itens) {
+          let colecao = 'products';
+          let snap = await getDoc(doc(db, colecao, item.id));
+          if (!snap.exists()) { colecao = 'loja_produtos'; snap = await getDoc(doc(db, colecao, item.id)); }
+          if (!snap.exists()) continue;
+          const estoqueAtual = snap.data().estoque;
+          if (estoqueAtual === undefined) continue;
+          const novoEstoque = Math.max(0, estoqueAtual - (item.qty || 1));
+          await updateDoc(doc(db, colecao, item.id), {
+            estoque: novoEstoque,
+            ...(novoEstoque === 0 && { status: 'esgotado' })
+          });
+        }
+      }
+ 
+      fecharModal('modal-pedido');
+      renderTabela('pedidos');
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+ 
+  // Expõe funções globais usadas no HTML inline
+  window.abrirModalRoles       = window.abrirModalRoles;
+  window.salvarRoles           = window.salvarRoles;
+  window.removerUsuario        = window.removerUsuario;
+  window.deletarStrain         = window.deletarStrain;
+  window.deletarProduto        = window.deletarProduto;
+  window.abrirModalPedido      = window.abrirModalPedido;
+  window.salvarStatusModal     = window.salvarStatusModal;
+  window.salvarStatusSubpedido = window.salvarStatusSubpedido;
+  window.abrirModalPublicidade = window.abrirModalPublicidade;
+  window.fecharModalPublicidade = window.fecharModalPublicidade;
+  window.salvarPublicidade     = window.salvarPublicidade;
+  window.editarPublicidade     = window.editarPublicidade;
+  window.togglePublicidade     = window.togglePublicidade;
+  window.removerPublicidade    = window.removerPublicidade;
+
+  window.previewPubFoto = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+    // Preview local usando URL.createObjectURL (sem base64, sem limite)
+    const url = URL.createObjectURL(file);
+    document.getElementById('pub-foto-img').src = url;
+    document.getElementById('pub-foto-preview').style.display = 'block';
+    // Limpa base64 antigo pois agora tem arquivo novo
+    document.getElementById('pub-foto-base64').value = '';
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // PUBLICIDADE
+  // ═══════════════════════════════════════════════════════════
+  let carregado_publicidade = false;
+  let pubEditandoId = null;
+
+  const carregarPublicidade = async () => {
+    if (carregado_publicidade) return;
+    carregado_publicidade = true;
+    const tbody = document.getElementById('tbody-publicidade');
+    try {
+      const agora = new Date();
+      const snap  = await getDocs(collection(db, 'publicidades'));
+      const pubs  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      document.getElementById('count-publicidade').textContent = `${pubs.length} cadastrada${pubs.length !== 1 ? 's' : ''}`;
+
+      if (!pubs.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma publicidade cadastrada.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      pubs.forEach(p => {
+        const validade = p.validade?.toDate ? p.validade.toDate() : (p.validade ? new Date(p.validade) : null);
+        const expirado = validade && validade < agora;
+        const status   = expirado ? '❌ Expirada' : p.ativo ? '✅ Ativa' : '⏸️ Inativa';
+        const statusCor = expirado ? 'var(--red)' : p.ativo ? 'var(--green2)' : 'var(--muted)';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><img src="${p.foto || ''}" alt="${p.nome}" style="width:80px;height:45px;object-fit:cover;border-radius:2px;border:1px solid var(--border)" onerror="this.style.display='none'"></td>
+          <td><strong>${p.nome || '—'}</strong></td>
+          <td>${p.link ? `<a href="${p.link}" target="_blank" style="color:var(--gold);font-size:0.82rem">${p.link.slice(0,30)}...</a>` : '—'}</td>
+          <td>${validade ? validade.toLocaleDateString('pt-BR') : '♾️ Vitalícia'}</td>
+          <td style="color:${statusCor};font-family:'Barlow Condensed';font-weight:700;font-size:0.85rem">${status}</td>
+          <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+            <button onclick="window.editarPublicidade('${p.id}')" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.3rem 0.7rem;font-family:'Barlow Condensed';font-size:0.8rem;font-weight:700;cursor:pointer;border-radius:2px">Editar</button>
+            <button onclick="window.togglePublicidade('${p.id}',${!p.ativo})" style="background:var(--bg3);border:1px solid var(--border);color:${p.ativo ? 'var(--red)' : 'var(--green2)'};padding:0.3rem 0.7rem;font-family:'Barlow Condensed';font-size:0.8rem;font-weight:700;cursor:pointer;border-radius:2px">${p.ativo ? 'Desativar' : 'Ativar'}</button>
+            <button onclick="window.removerPublicidade('${p.id}')" style="background:rgba(224,82,82,0.15);border:1px solid var(--red);color:var(--red);padding:0.3rem 0.7rem;font-family:'Barlow Condensed';font-size:0.8rem;font-weight:700;cursor:pointer;border-radius:2px">Remover</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red)">Erro ao carregar.</td></tr>';
+    }
+  };
+
+  window.abrirModalPublicidade = (id = null) => {
+    pubEditandoId = null;
+    document.getElementById('pub-modal-titulo').innerHTML = 'Nova <span>Publicidade</span>';
+    document.getElementById('pub-nome').value       = '';
+    document.getElementById('pub-link').value       = '';
+    document.getElementById('pub-validade').value   = '';
+    document.getElementById('pub-foto-file').value  = '';
+    document.getElementById('pub-foto-base64').value = '';
+    document.getElementById('pub-foto-preview').style.display = 'none';
+    document.getElementById('pub-vitalicia').checked  = false;
+    document.getElementById('pub-validade').disabled  = false;
+    document.getElementById('pub-error').textContent  = '';
+    document.getElementById('modal-publicidade').classList.add('open');
+  };
+
+  window.fecharModalPublicidade = () => {
+    document.getElementById('modal-publicidade').classList.remove('open');
+    pubEditandoId = null;
+  };
+
+  window.editarPublicidade = async (id) => {
+    try {
+      const snap = await getDoc(doc(db, 'publicidades', id));
+      if (!snap.exists()) return;
+      const p = snap.data();
+      pubEditandoId = id;
+      document.getElementById('pub-modal-titulo').innerHTML = 'Editar <span>Publicidade</span>';
+      document.getElementById('pub-nome').value      = p.nome || '';
+      document.getElementById('pub-link').value      = p.link || '';
+      document.getElementById('pub-foto-base64').value = p.foto || '';
+      document.getElementById('pub-foto-file').value  = '';
+      if (p.foto) {
+        document.getElementById('pub-foto-img').src     = p.foto;
+        document.getElementById('pub-foto-preview').style.display = 'block';
+      } else {
+        document.getElementById('pub-foto-preview').style.display = 'none';
+      }
+      const vitalicia = !p.validade;
+      document.getElementById('pub-vitalicia').checked = vitalicia;
+      document.getElementById('pub-validade').disabled = vitalicia;
+      if (p.validade) {
+        const d = p.validade?.toDate ? p.validade.toDate() : new Date(p.validade);
+        document.getElementById('pub-validade').value = d.toISOString().split('T')[0];
+      }
+      document.getElementById('pub-error').textContent = '';
+      document.getElementById('modal-publicidade').classList.add('open');
+    } catch (err) { console.error(err); }
+  };
+
+  window.salvarPublicidade = async () => {
+    const nome        = document.getElementById('pub-nome').value.trim();
+    const fotoBase64  = document.getElementById('pub-foto-base64').value;
+    const fotoFile    = document.getElementById('pub-foto-file').files[0];
+    const link        = document.getElementById('pub-link').value.trim();
+    const vitalicia   = document.getElementById('pub-vitalicia').checked;
+    const validadeStr = document.getElementById('pub-validade').value;
+    const errEl       = document.getElementById('pub-error');
+
+    if (!nome) { errEl.textContent = 'Nome é obrigatório.'; return; }
+    if (!fotoBase64 && !fotoFile && !pubEditandoId) { errEl.textContent = 'Foto é obrigatória.'; return; }
+    if (!vitalicia && !validadeStr) { errEl.textContent = 'Informe a validade ou marque como vitalícia.'; return; }
+
+    // Se selecionou novo arquivo, comprime e converte para base64
+    let foto = fotoBase64;
+    if (fotoFile) {
+      try { foto = await comprimirImagem(fotoFile); }
+      catch (_) { errEl.textContent = 'Erro ao processar imagem. Tente novamente.'; return; }
+    }
+
+    const dados = {
+      nome,
+      ...(foto && { foto }),
+      link:     link || null,
+      validade: vitalicia ? null : new Date(validadeStr),
+      ativo:    true,
+      criadoEm: serverTimestamp()
+    };
+
+    try {
+      if (pubEditandoId) {
+        await setDoc(doc(db, 'publicidades', pubEditandoId), dados, { merge: true });
+        showToast('✅ Publicidade atualizada!');
+      } else {
+        await addDoc(collection(db, 'publicidades'), dados);
+        showToast('✅ Publicidade adicionada!');
+      }
+      window.fecharModalPublicidade();
+      carregado_publicidade = false;
+      carregarPublicidade();
+    } catch (err) {
+      errEl.textContent = 'Erro ao salvar: ' + err.message;
+    }
+  };
+
+  window.togglePublicidade = async (id, ativo) => {
+    try {
+      await setDoc(doc(db, 'publicidades', id), { ativo }, { merge: true });
+      showToast(ativo ? '✅ Publicidade ativada!' : '⏸️ Publicidade desativada!');
+      carregado_publicidade = false;
+      carregarPublicidade();
+    } catch (err) { console.error(err); }
+  };
+
+  window.removerPublicidade = async (id) => {
+    if (!confirm('Remover esta publicidade?')) return;
+    try {
+      await deleteDoc(doc(db, 'publicidades', id));
+      showToast('🗑️ Publicidade removida!');
+      carregado_publicidade = false;
+      carregarPublicidade();
+    } catch (err) { console.error(err); }
+  };
+</script>
+<!-- MODAL PUBLICIDADE -->
+<div class="modal-overlay" id="modal-publicidade" style="z-index:800">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-close" onclick="window.fecharModalPublicidade()">✕</button>
+    <h2 id="pub-modal-titulo">Nova <span>Publicidade</span></h2>
+    <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1.5rem">
+      <div class="form-group">
+        <label>Nome (identificação interna)</label>
+        <input type="text" id="pub-nome" placeholder="Ex: Banner Verão 2026">
+      </div>
+      <div class="form-group">
+        <label>Foto do Banner</label>
+        <input type="file" id="pub-foto-file" accept="image/*" onchange="window.previewPubFoto(this)" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem;border-radius:2px;width:100%;cursor:pointer">
+        <div id="pub-foto-preview" style="margin-top:0.5rem;display:none">
+          <img id="pub-foto-img" style="width:100%;max-height:160px;object-fit:cover;border-radius:2px;border:1px solid var(--border)">
+        </div>
+        <input type="hidden" id="pub-foto-base64">
+      </div>
+      <div class="form-group">
+        <label>Link (ao clicar no banner)</label>
+        <input type="url" id="pub-link" placeholder="https://... (opcional)">
+      </div>
+      <div class="form-group">
+        <label>Validade</label>
+        <input type="date" id="pub-validade">
+        <label style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;font-size:0.85rem;cursor:pointer">
+          <input type="checkbox" id="pub-vitalicia" onchange="document.getElementById('pub-validade').disabled=this.checked">
+          Publicidade vitalícia (sem validade)
+        </label>
+      </div>
+      <div class="form-error" id="pub-error"></div>
+      <button class="form-submit" onclick="window.salvarPublicidade()">Salvar Publicidade</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

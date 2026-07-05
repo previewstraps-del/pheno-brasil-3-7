@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sobre – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.sobre-container { max-width: 800px; margin: 4rem auto; padding: 0 2rem; }
+.sobre-container h1 { font-family: 'Barlow Condensed'; font-size: 2.5rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; }
+.sobre-container h2 { font-family: 'Barlow Condensed'; font-size: 1.6rem; font-weight: 700; text-transform: uppercase; color: var(--white); margin: 2rem 0 1rem; }
+.sobre-container p { color: var(--muted); line-height: 1.8; margin-bottom: 1.5rem; font-size: 0.95rem; }
+.destaque { font-style: italic; color: #d1d1d1; border-left: 4px solid var(--gold); padding: 1rem 1.5rem; margin: 2.5rem 0; background: rgba(255,255,255,0.03); border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<div class="main-wrap">
+  <div class="sobre-container">
+    <h1>Sobre a PhenoBrasil</h1>
+    <p>A PhenoBrasil não nasceu apenas como um espaço digital para colecionadores de sementes; ela surgiu como um manifesto. Em um país onde o conhecimento botânico foi, por décadas, sufocado pelo medo e pelo preconceito, decidimos dar um passo adiante e reivindicar o nosso direito à informação.</p>
+
+    <div class="destaque">
+      "Criamos este site com uma missão clara: lutar contra a criminalização do cultivo e, acima de tudo, usar a botânica como ferramenta para ajudar pessoas."
+    </div>
+
+    <p>Acreditamos que a genética é arte e a natureza é um direito. Nosso foco é promover o estudo profundo sobre variedades premium, apoiando criadores (breeders) brasileiros que dedicam suas vidas a estabilizar genéticas de alta performance.</p>
+
+    <h2>Nossa Luta</h2>
+    <p>Nossa plataforma é um ato de resistência pacífica. Lutamos diariamente para desmistificar o cultivo, provando que o acesso a sementes de qualidade é o primeiro passo para a autonomia. Ao democratizar o acesso às melhores genéticas do mundo, estamos devolvendo ao cidadão o controle sobre sua própria saúde, seu bem-estar e seu desenvolvimento pessoal.</p>
+
+    <h2>Para Quem Criamos Isso?</h2>
+    <p>Criamos isso para quem busca alívio, para quem busca estudo e para quem acredita que a mudança social começa no cuidado com a própria terra. A PhenoBrasil não é sobre incentivar o ilícito, é sobre educar para a liberdade.</p>
+    <p>Seja bem-vindo ao nosso movimento. Seja bem-vindo à PhenoBrasil.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+
+  renderNav('Sobre');
+  initCarrinho();
+  initAuth();
+  renderFooter();
+</script>
+</body>
+</html>

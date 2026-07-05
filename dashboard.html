@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Painel – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0d; --bg2: #141414; --bg3: #1c1c1c;
+  --border: #2a2a2a; --gold: #c9a84c; --green: #3a7d44;
+  --green2: #4caf50; --white: #f0ede8; --muted: #888; --red: #e05252;
+}
+body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--white); min-height: 100vh; }
+
+/* NAV */
+nav { background: #070707; border-bottom: 1px solid var(--border); border-top: 3px solid var(--gold); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 70px; position: sticky; top: 0; z-index: 100; }
+.nav-logo h2 { font-family: 'Barlow Condensed'; font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; cursor: pointer; }
+.nav-actions { display: flex; align-items: center; gap: 0.8rem; }
+.nav-link-btn { background: transparent; border: 1px solid var(--border); color: var(--white); padding: 0.45rem 0.9rem; cursor: pointer; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; text-decoration: none; font-size: 0.85rem; transition: all 0.2s; display: inline-flex; align-items: center; border-radius: 2px; }
+.nav-link-btn:hover { border-color: var(--gold); color: var(--gold); }
+.logout-btn { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0.45rem 0.9rem; cursor: pointer; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; transition: all 0.2s; border-radius: 2px; font-size: 0.85rem; }
+.logout-btn:hover { background: var(--red); color: #fff; }
+
+/* NOTIFICAÇÕES */
+.notif-wrap { position: relative; }
+.notif-btn { background: transparent; border: 1px solid var(--border); color: var(--white); width: 38px; height: 38px; border-radius: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s; position: relative; }
+.notif-btn:hover { border-color: var(--gold); }
+.notif-badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: #fff; font-family: 'Barlow Condensed'; font-size: 0.6rem; font-weight: 800; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; }
+.notif-badge.visible { display: flex; }
+.notif-dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 300px; background: var(--bg2); border: 1px solid var(--border); border-top: 2px solid var(--gold); border-radius: 4px; z-index: 500; display: none; max-height: 380px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.notif-dropdown.open { display: block; }
+.notif-header { padding: 0.7rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.notif-header span { font-family: 'Barlow Condensed'; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--gold); }
+.notif-clear { background: none; border: none; color: var(--muted); font-size: 0.72rem; cursor: pointer; font-family: 'Barlow Condensed'; text-transform: uppercase; }
+.notif-clear:hover { color: var(--red); }
+.notif-item { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; display: flex; gap: 0.6rem; align-items: flex-start; }
+.notif-item:hover { background: var(--bg3); }
+.notif-item.unread { border-left: 3px solid var(--gold); }
+.notif-item-title { font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.notif-item.unread .notif-item-title { color: var(--white); }
+.notif-item-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+.notif-empty { padding: 1.5rem 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+/* STATS CONTAINER FIXO */
+.stats-container { max-width: 1100px; margin: 1.5rem auto 0; padding: 0 2rem; }
+@media (max-width: 768px) { .stats-container { padding: 0 1rem; } }
+
+/* TABS */
+.dashboard-tabs { background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; padding: 0 2rem; gap: 0; overflow-x: auto; }
+.dash-tab { padding: 1rem 1.5rem; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; }
+.dash-tab:hover { color: var(--white); }
+.dash-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* CONTAINER */
+.dashboard-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+@media (max-width: 768px) { .dashboard-container { padding: 1rem; } .dashboard-tabs { padding: 0 1rem; } }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 1.2rem 1.5rem; }
+.stat-card-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.stat-card-value { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; color: var(--gold); }
+
+/* SECTIONS */
+.section-collapsible { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+.section-toggle { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; cursor: pointer; user-select: none; transition: background 0.2s; }
+.section-toggle:hover { background: var(--bg3); }
+.section-toggle h3 { font-family: 'Barlow Condensed'; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin: 0; }
+.section-toggle-right { display: flex; align-items: center; gap: 1rem; }
+.section-count { font-size: 0.78rem; color: var(--muted); font-family: 'Barlow Condensed'; }
+.toggle-arrow { color: var(--muted); font-size: 0.72rem; transition: transform 0.2s; }
+.section-collapsible.open .toggle-arrow { transform: rotate(180deg); }
+.section-body { display: none; border-top: 1px solid var(--border); }
+.section-collapsible.open .section-body { display: block; }
+.section-toolbar { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg3); flex-wrap: wrap; }
+.search-wrap { display: flex; align-items: center; gap: 0.5rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; padding: 0.4rem 0.8rem; flex: 1; min-width: 180px; }
+.search-wrap:focus-within { border-color: var(--gold); }
+.search-wrap input { background: none; border: none; color: var(--white); font-family: 'Barlow'; font-size: 0.9rem; outline: none; width: 100%; }
+.search-wrap span { color: var(--muted); }
+.section-list { padding: 1rem 1.5rem; }
+
+/* ACTION BAR */
+.action-bar { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
+.nova-btn { background: var(--green); color: #fff; border: none; padding: 0.7rem 1.5rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border-radius: 2px; transition: background 0.2s; }
+.nova-btn:hover { background: var(--green2); }
+
+/* PRODUCT ITEMS */
+.product-item { background: var(--bg3); border: 1px solid var(--border); padding: 1rem; border-radius: 2px; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.product-item-img { width: 50px; height: 50px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; background: var(--bg2); }
+.product-info { flex: 1; min-width: 0; }
+.product-info h4 { font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-info p { color: var(--muted); font-size: 0.82rem; margin-top: 0.2rem; }
+.product-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; flex-shrink: 0; }
+.price-tag { color: var(--gold); font-weight: 700; font-family: 'Barlow Condensed'; font-size: 1.1rem; }
+.action-btns { display: flex; gap: 0.4rem; }
+.edit-btn { background: var(--gold); color: #000; border: none; padding: 0.3rem 0.8rem; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; cursor: pointer; border-radius: 2px; }
+.edit-btn:hover { opacity: 0.85; }
+.del-btn { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 0.3rem 0.8rem; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.del-btn:hover { background: var(--red); color: #fff; }
+
+/* PEDIDOS */
+.pedido-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 0.6rem; overflow: hidden; }
+.pedido-header { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; cursor: pointer; gap: 1rem; }
+.pedido-header:hover { background: var(--bg2); }
+.pedido-id { font-family: 'Barlow Condensed'; font-size: 0.95rem; font-weight: 700; }
+.pedido-data { font-size: 0.75rem; color: var(--muted); }
+.pedido-total { font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; color: var(--gold); }
+.pedido-body { display: none; padding: 0.8rem 1.2rem; border-top: 1px solid var(--border); }
+.pedido-card.open .pedido-body { display: block; }
+.pedido-item-row { display: flex; align-items: center; gap: 0.8rem; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.pedido-item-row:last-child { border-bottom: none; }
+.pedido-item-img { width: 36px; height: 36px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; }
+.ver-btn { background: var(--bg2); color: var(--white); border: 1px solid var(--border); padding: 0.3rem 0.7rem; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.ver-btn:hover { border-color: var(--gold); color: var(--gold); }
+.badge-confirmado { background: #002a10; color: #00cc66; }
+.badge-pendente   { background: #3a2a00; color: #f0a500; }
+.badge-cancelado  { background: #2a0000; color: var(--red); }
+
+/* FORMS */
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.7rem 1rem; font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; border-radius: 2px; transition: border-color 0.2s; }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+.section-divider { font-family: 'Barlow Condensed'; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--gold); letter-spacing: 0.1em; margin: 1.2rem 0 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.submit-btn { width: 100%; background: var(--green); color: #fff; border: none; padding: 0.9rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; margin-top: 0.5rem; transition: background 0.2s; }
+.submit-btn:hover { background: var(--green2); }
+.cancel-btn { width: 100%; background: transparent; color: var(--red); border: 1px solid var(--red); padding: 0.6rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 0.5rem; border-radius: 2px; transition: all 0.2s; }
+.cancel-btn:hover { background: var(--red); color: #fff; }
+
+/* TAGS */
+.tag-input-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; background: var(--bg3); border: 1px solid var(--border); padding: 0.5rem; border-radius: 2px; min-height: 42px; align-items: center; cursor: text; }
+.tag-input-wrap:focus-within { border-color: var(--gold); }
+.tag { background: var(--bg2); border: 1px solid var(--border); color: var(--white); padding: 0.2rem 0.6rem; border-radius: 2px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; }
+.tag-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; line-height: 1; padding: 0; }
+.tag-remove:hover { color: var(--red); }
+.tag-input { background: none; border: none; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.88rem; outline: none; min-width: 100px; flex: 1; }
+
+/* FOTOS */
+.foto-upload-item { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+.foto-preview-thumb { width: 46px; height: 46px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; display: none; }
+.foto-preview-thumb.visible { display: block; }
+.foto-upload-label { flex: 1; background: var(--bg3); border: 1px dashed var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: default; border-radius: 2px; display: flex; align-items: center; gap: 0.5rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.add-foto-btn { background: transparent; border: 1px dashed var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; width: 100%; margin-top: 0.3rem; transition: all 0.2s; text-align: center; display: block; }
+.add-foto-btn:hover { border-color: var(--gold); color: var(--gold); }
+.foto-remove-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; flex-shrink: 0; transition: color 0.2s; }
+.foto-remove-btn:hover { color: var(--red); }
+
+/* VARIANTES */
+.variante-grupo { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; padding: 0.8rem; margin-bottom: 0.6rem; }
+.variante-grupo-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+.variante-grupo-header input { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--white); padding: 0.4rem 0.7rem; font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; border-radius: 2px; outline: none; }
+.variante-grupo-header input:focus { border-color: var(--gold); }
+.remove-grupo-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; transition: color 0.2s; }
+.remove-grupo-btn:hover { color: var(--red); }
+.add-grupo-btn { background: transparent; border: 1px dashed var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Barlow Condensed'; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.add-grupo-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* MODAIS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; display: none; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 640px; padding: 2rem; border-radius: 4px; position: relative; margin: auto; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: var(--white); }
+.modal-box h3 { font-family: 'Barlow Condensed'; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+
+/* PERFIL FOTO */
+.perfil-foto-wrap { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.perfil-foto-preview { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); background: var(--bg3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--gold); overflow: hidden; }
+.perfil-foto-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.perfil-foto-preview img.visible { display: block; }
+.perfil-foto-upload-label { flex: 1; background: var(--bg3); border: 1px dashed var(--border); color: var(--muted); padding: 0.6rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
+.perfil-foto-upload-label:hover { border-color: var(--gold); color: var(--gold); }
+
+/* PEDIDO MODAL */
+.modal-pedido-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 600; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.modal-pedido-overlay.open { display: flex; }
+.modal-pedido { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 540px; border-radius: 4px; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; }
+.modal-pedido-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; }
+.modal-pedido h3 { font-family: 'Barlow Condensed'; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; }
+.pedido-detail-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 0.6rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); margin-top: 1.2rem; }
+.pedido-detail-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.88rem; }
+.pedido-detail-row span:first-child { color: var(--muted); }
+.pedido-detail-row span:last-child { font-weight: 600; }
+.pedido-detail-item { display: flex; gap: 0.8rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.pedido-detail-item:last-child { border-bottom: none; }
+.pedido-detail-img { width: 42px; height: 42px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; }
+.pedido-detail-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.pedido-detail-total span:first-child { font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.pedido-detail-total span:last-child { font-family: 'Barlow Condensed'; font-size: 1.5rem; font-weight: 800; color: var(--gold); }
+
+/* DESTINATÁRIO GRID */
+.dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; margin: 0.6rem 0; }
+@media (max-width: 480px) { .dest-grid { grid-template-columns: 1fr; } }
+.dest-field { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; padding: 0.45rem 0.7rem; }
+.dest-label { font-size: 0.66rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 0.15rem; }
+.dest-value { font-size: 0.86rem; color: var(--white); }
+
+/* STATE */
+.state-msg { color: var(--muted); text-align: center; padding: 2rem; font-size: 0.9rem; }
+.state-err { color: var(--red); text-align: center; padding: 2rem; font-size: 0.9rem; }
+
+/* TAB PANELS */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* PERFIL PAGE */
+.perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media (max-width: 768px) { .perfil-grid { grid-template-columns: 1fr; } }
+.perfil-card { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 4px; padding: 1.5rem; }
+.perfil-card h3 { font-family: 'Barlow Condensed'; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" onclick="location.href='index.html'">
+    <h2>PHENO<span style="color:var(--gold)">BRASIL</span> <span style="color:var(--muted);font-size:0.75rem;font-weight:400">/ Meu Painel</span></h2>
+  </div>
+  <div class="nav-actions">
+    <div class="notif-wrap" id="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif()" title="Notificações">
+        🔔 <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-dropdown" id="notif-dropdown">
+        <div class="notif-header">
+          <span>Notificações</span>
+          <button class="notif-clear" onclick="limparNotifs()">Limpar</button>
+        </div>
+        <div id="notif-list"><div class="notif-empty">Nenhuma notificação.</div></div>
+      </div>
+    </div>
+    <a href="index.html" class="nav-link-btn">🏠 Loja</a>
+    <button class="logout-btn" onclick="fazerLogout()">Sair</button>
+  </div>
+</nav>
+
+<!-- STATS FIXOS -->
+<div class="stats-container" id="stats-container">
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-card-label">Carregando</div><div class="stat-card-value">—</div></div>
+  </div>
+</div>
+
+<!-- TABS — geradas via JS conforme roles -->
+<div class="dashboard-tabs" id="dashboard-tabs"></div>
+
+<!-- TAB PANELS -->
+<div class="dashboard-container">
+
+  <!-- PEDIDOS -->
+  <div class="tab-panel active" id="panel-pedidos">
+    <div class="section-collapsible open" id="sec-pedidos-unificados">
+      <div class="section-toggle" onclick="toggleSec('sec-pedidos-unificados')">
+        <h3>📦 Meus Pedidos</h3>
+        <div class="section-toggle-right">
+          <span class="section-count" id="count-pedidos-unificados"></span>
+          <span class="toggle-arrow">▼</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="section-toolbar">
+          <div class="search-wrap"><span>🔍</span><input type="text" id="search-pedidos-unificados" placeholder="Buscar por ID ou cliente..." oninput="filtrarPedidosUnificados()"></div>
+          <select id="filter-status-unificado" onchange="filtrarPedidosUnificados()" style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:0.4rem 0.8rem;font-family:'Barlow Condensed';border-radius:2px;cursor:pointer;">
+            <option value="">Todos os status</option>
+            <option value="pendente">⏳ Pendente</option>
+            <option value="confirmado">✅ Confirmado</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+        <div class="section-list" id="pedidos-unificados-list"><div class="state-msg">Carregando pedidos...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRAINS (breeder) -->
+  <div class="tab-panel" id="panel-strains">
+    <div class="action-bar">
+      <button class="nova-btn" onclick="abrirModalStrain()">+ Nova Strain</button>
+    </div>
+    <div class="section-collapsible open" id="sec-strains">
+      <div class="section-toggle" onclick="toggleSec('sec-strains')">
+        <h3>🌿 Minhas Genéticas</h3>
+        <div class="section-toggle-right">
+          <span class="section-count" id="count-strains"></span>
+          <span class="toggle-arrow">▼</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="section-toolbar">
+          <div class="search-wrap"><span>🔍</span><input type="text" id="search-strains" placeholder="Buscar strain..." oninput="filtrarStrains()"></div>
+        </div>
+        <div class="section-list" id="strains-list"><div class="state-msg">Carregando...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUTOS (vendedor) -->
+  <div class="tab-panel" id="panel-produtos">
+    <div class="action-bar">
+      <button class="nova-btn" onclick="abrirModalProduto()">+ Novo Produto</button>
+    </div>
+    <div class="section-collapsible open" id="sec-produtos">
+      <div class="section-toggle" onclick="toggleSec('sec-produtos')">
+        <h3>🛍️ Meus Produtos</h3>
+        <div class="section-toggle-right">
+          <span class="section-count" id="count-produtos"></span>
+          <span class="toggle-arrow">▼</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="section-toolbar">
+          <div class="search-wrap"><span>🔍</span><input type="text" id="search-produtos" placeholder="Buscar produto..." oninput="filtrarProdutos()"></div>
+        </div>
+        <div class="section-list" id="produtos-list"><div class="state-msg">Carregando...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRETE E PAGAMENTO -->
+  <div class="tab-panel" id="panel-frete">
+    <div class="perfil-grid" id="frete-grid">
+      <div class="state-msg">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="tab-panel" id="panel-perfil">
+    <div class="perfil-grid" id="perfil-grid">
+      <div class="state-msg">Carregando perfil...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL STRAIN -->
+<div id="modal-strain" class="modal-overlay" onclick="if(event.target===this)fecharModalStrain()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalStrain()">✕</button>
+    <h3 id="strain-modal-title">Nova Strain</h3>
+    <form id="form-strain" onsubmit="salvarStrain(event)">
+      <input type="hidden" id="strain-id">
+      <div class="section-divider">Informações Básicas</div>
+      <div class="form-group"><label>Nome da Strain</label><input type="text" id="s-name" placeholder="Ex: Tropicana Cookies" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Genética</label>
+          <select id="s-genetica">
+            <option value="Feminizada">Feminizada</option>
+            <option value="Regular">Regular</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Fotoperiodismo</label>
+          <select id="s-fotoperiodismo">
+            <option value="Fotoperiodo">Fotoperiodo</option>
+            <option value="Automática">Automática</option>
+            <option value="Fast Flower">Fast Flower</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Floração</label><input type="text" id="s-flow" placeholder="Ex: 8-9 Semanas" required></div>
+        <div class="form-group"><label>Preço (R$)</label><input type="number" id="s-price" placeholder="Ex: 150" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Estoque</label><input type="number" id="s-estoque" placeholder="Ex: 10" min="0"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="s-status">
+            <option value="ativo">Ativo</option>
+            <option value="esgotado">Esgotado</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="section-divider">Fotos</div>
+      <div id="s-fotos-wrap"></div>
+      <label class="add-foto-btn" for="s-foto-upload">+ Adicionar foto</label>
+      <input type="file" id="s-foto-upload" style="display:none" accept="image/*" multiple onchange="handleFotosUpload(this,'strain')">
+      <div class="section-divider">Genética & Potência</div>
+      <div class="form-row">
+        <div class="form-group"><label>Genitor Pai ♂</label><input type="text" id="s-pai" placeholder="Ex: OG Kush"></div>
+        <div class="form-group"><label>Genitor Mãe ♀</label><input type="text" id="s-mae" placeholder="Ex: Gelato"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>THC</label>
+          <select id="s-thc">
+            <option value="Baixo (1-7%)">Baixo (1-7%)</option>
+            <option value="Médio (8-15%)">Médio (8-15%)</option>
+            <option value="Alto (+16%)">Alto (+16%)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>CBD</label>
+          <select id="s-cbd">
+            <option value="Baixo (1-7%)">Baixo (1-7%)</option>
+            <option value="Médio (8-15%)">Médio (8-15%)</option>
+            <option value="Alto (+16%)">Alto (+16%)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Produção Indoor</label><input type="text" id="s-indoor" placeholder="Ex: 500g/m²"></div>
+        <div class="form-group"><label>Produção Outdoor</label><input type="text" id="s-outdoor" placeholder="Ex: 800g/planta"></div>
+      </div>
+      <div class="form-group"><label>Efeitos (Enter para adicionar)</label>
+        <div class="tag-input-wrap" id="wrap-efeitos" onclick="document.getElementById('input-efeitos').focus()">
+          <input class="tag-input" id="input-efeitos" placeholder="Ex: Relaxante...">
+        </div>
+      </div>
+      <div class="form-group"><label>Aromas (Enter para adicionar)</label>
+        <div class="tag-input-wrap" id="wrap-aromas" onclick="document.getElementById('input-aromas').focus()">
+          <input class="tag-input" id="input-aromas" placeholder="Ex: Cítrico...">
+        </div>
+      </div>
+      <div class="form-group"><label>Descrição</label><textarea id="s-desc" placeholder="Conte a história desta strain..."></textarea></div>
+      <button type="submit" class="submit-btn" id="strain-submit-btn">Adicionar à Vitrine</button>
+      <button type="button" class="cancel-btn" onclick="fecharModalStrain()">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL PRODUTO -->
+<div id="modal-produto" class="modal-overlay" onclick="if(event.target===this)fecharModalProduto()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalProduto()">✕</button>
+    <h3 id="produto-modal-title">Novo Produto</h3>
+    <form id="form-produto" onsubmit="salvarProduto(event)">
+      <input type="hidden" id="produto-id">
+      <div class="section-divider">Informações Básicas</div>
+      <div class="form-group"><label>Nome do Produto</label><input type="text" id="p-name" placeholder="Ex: Camiseta PhenoBrasil" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Preço (R$)</label><input type="number" id="p-price" placeholder="Ex: 89" step="0.01" required></div>
+        <div class="form-group"><label>Categoria</label>
+          <select id="p-categoria">
+            <option value="Roupas">Roupas</option>
+            <option value="Impressão 3D">Impressão 3D</option>
+            <option value="Acessório">Acessório</option>
+            <option value="Moletom">Moletom</option>
+            <option value="Calça">Calça</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Estoque</label><input type="number" id="p-estoque" placeholder="Ex: 10" min="0"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="p-status">
+            <option value="ativo">Ativo</option>
+            <option value="esgotado">Esgotado</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="section-divider">Fotos</div>
+      <div id="p-fotos-wrap"></div>
+      <label class="add-foto-btn" for="p-foto-upload">+ Adicionar foto</label>
+      <input type="file" id="p-foto-upload" style="display:none" accept="image/*" multiple onchange="handleFotosUpload(this,'produto')">
+      <div class="form-group"><label>Descrição</label><textarea id="p-desc" placeholder="Descreva o produto, material, detalhes..."></textarea></div>
+      <div class="section-divider">📦 Dimensões para Envio <span style="color:var(--red);font-size:0.75rem;font-weight:400;text-transform:none">* Obrigatório — interfere no cálculo do frete</span></div>
+      <div class="form-row">
+        <div class="form-group"><label>Peso (g) *</label><input type="number" id="p-peso" placeholder="Ex: 400" min="0" step="1" required></div>
+        <div class="form-group"><label>Largura (cm) *</label><input type="number" id="p-largura" placeholder="Ex: 25" min="0" step="0.1" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Altura (cm) *</label><input type="number" id="p-altura" placeholder="Ex: 3" min="0" step="0.1" required></div>
+        <div class="form-group"><label>Comprimento (cm) *</label><input type="number" id="p-comprimento" placeholder="Ex: 30" min="0" step="0.1" required></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:0.88rem;margin-bottom:0.8rem">
+        <input type="checkbox" id="p-fragil" style="accent-color:var(--gold)">
+        Produto frágil (requer manuseio especial)
+      </label>
+      <div class="section-divider">Variantes</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+        <span style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;font-weight:600">Grupos (Tamanho, Cor...)</span>
+        <button type="button" class="add-grupo-btn" onclick="adicionarGrupo()">+ Adicionar grupo</button>
+      </div>
+      <div id="variantes-container"></div>
+      <button type="submit" class="submit-btn" id="produto-submit-btn">Adicionar à Loja</button>
+      <button type="button" class="cancel-btn" onclick="fecharModalProduto()">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DETALHES PEDIDO -->
+<div class="modal-pedido-overlay" id="modal-pedido-overlay" onclick="if(event.target===this)fecharModalPedido()">
+  <div class="modal-pedido">
+    <button class="modal-pedido-close" onclick="fecharModalPedido()">✕</button>
+    <h3>📦 Pedido <span id="mp-id" style="color:var(--white)"></span></h3>
+    <div class="pedido-detail-label">Destinatário</div>
+    <div class="dest-grid">
+      <div class="dest-field"><div class="dest-label">Nome</div><div class="dest-value" id="mp-nome">—</div></div>
+      <div class="dest-field"><div class="dest-label">Email</div><div class="dest-value" id="mp-email">—</div></div>
+      <div class="dest-field"><div class="dest-label">Telefone</div><div class="dest-value" id="mp-telefone">—</div></div>
+      <div class="dest-field"><div class="dest-label">CPF</div><div class="dest-value" id="mp-cpf">—</div></div>
+      <div class="dest-field" style="grid-column:1/-1"><div class="dest-label">Endereço</div><div class="dest-value" id="mp-endereco">—</div></div>
+      <div class="dest-field"><div class="dest-label">CEP</div><div class="dest-value" id="mp-cep">—</div></div>
+      <div class="dest-field"><div class="dest-label">Cidade / UF</div><div class="dest-value" id="mp-cidade">—</div></div>
+    </div>
+    <div class="pedido-detail-label">Itens</div>
+    <div id="mp-itens"></div>
+    <div class="pedido-detail-total"><span>Total (meus itens)</span><span id="mp-total"></span></div>
+    <div id="mp-frete-info" style="display:none;margin-top:1rem;padding:0.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:2px">
+      <div style="font-size:0.72rem;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">Frete Selecionado</div>
+      <div id="mp-frete-nome" style="font-family:'Barlow Condensed';font-size:1rem;font-weight:700"></div>
+      <div id="mp-frete-prazo" style="font-size:0.78rem;color:var(--muted)"></div>
+    </div>
+    <button id="btn-gerar-etiqueta" onclick="gerarEtiqueta()" style="display:none;width:100%;background:var(--green);color:#fff;border:none;padding:0.9rem;font-family:'Barlow Condensed';font-size:1rem;font-weight:700;text-transform:uppercase;cursor:pointer;border-radius:2px;margin-top:1rem">🏷️ Gerar Etiqueta de Envio</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, getDoc, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJTlL-4piG67VOM_y480dhyib2qaF3Bso",
+    authDomain: "phenobrasil.firebaseapp.com",
+    projectId: "phenobrasil",
+    storageBucket: "phenobrasil.firebasestorage.app",
+    messagingSenderId: "825755980394",
+    appId: "1:825755980394:web:caad888821d128fb133013"
+  };
+
+  const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  let usuarioAtual     = null;
+  let userRoles        = [];
+  let executandoLogout = false;
+
+  // Dados locais
+  let strainsLocais    = [];
+  let produtosLocais   = [];
+  let todosPedidosStrains  = [];
+  let todosPedidosProdutos = [];
+  let pedidosCarregados = { strains: false, produtos: false };
+
+  // Fotos
+  let fotosStrain  = [];
+  let fotosProduto = [];
+
+  // Variantes
+  window.gruposVariantes = [];
+  let gruposVariantes = window.gruposVariantes;
+  let grupoIdCounter  = 0;
+
+  // Tags
+  let tagsEfeitos = [];
+  let tagsAromas  = [];
+
+  // ── HELPERS ───────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const toBase64 = file => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  const getRoles = (data) => {
+    if (data?.roles && Array.isArray(data.roles)) return data.roles;
+    if (data?.role) return [data.role];
+    return [];
+  };
+
+  // ── AUTH ──────────────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { if (!executandoLogout) location.href = 'index.html'; return; }
+
+    let userData = null;
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) userData = snap.data();
+    } catch (_) {}
+
+    const roles = getRoles(userData);
+    const isBreeder = roles.includes('breeder');
+    const isVendedor = roles.includes('vendedor');
+
+    if (!isBreeder && !isVendedor) {
+      alert('Acesso negado. Conta sem permissão de painel.');
+      await signOut(auth);
+      location.href = 'index.html';
+      return;
+    }
+
+    usuarioAtual = user;
+    userRoles    = roles;
+
+    // Expor para scripts externos (buildFrete usa window._db etc)
+    window._db           = db;
+    window._auth         = auth;
+    window._userRoles    = roles;
+    window._dadosUsuario = userData || {};
+
+    buildTabs(isBreeder, isVendedor);
+    buildStats(isBreeder, isVendedor);
+    buildPerfil(userData);
+
+    if (isBreeder)  carregarStrains();
+    if (isVendedor) carregarProdutos();
+
+    carregarPedidosUnificados();
+    iniciarListenerPedidos(isBreeder, isVendedor);
+    atualizarBadge();
+  });
+
+  window.fazerLogout = async () => {
+    try { executandoLogout = true; await signOut(auth); location.href = 'index.html'; }
+    catch (_) { executandoLogout = false; }
+  };
+
+  // ── TABS ──────────────────────────────────────────────────
+  function buildTabs(isBreeder, isVendedor) {
+    const tabsEl = $('dashboard-tabs');
+    const tabs = [{ id: 'pedidos', label: '📦 Pedidos' }];
+    if (isBreeder)  tabs.push({ id: 'strains',  label: '🌿 Strains' });
+    if (isVendedor) tabs.push({ id: 'produtos',  label: '🛍️ Produtos' });
+    tabs.push({ id: 'frete',  label: '🚚 Frete & Pagamento' });
+    tabs.push({ id: 'perfil', label: '⚙️ Perfil' });
+
+    tabsEl.innerHTML = tabs.map(t =>
+      `<button class="dash-tab ${t.id === 'pedidos' ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.label}</button>`
+    ).join('');
+  }
+
+  window.switchTab = (id) => {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.dash-tab[onclick="switchTab('${id}')"]`)?.classList.add('active');
+    $(`panel-${id}`)?.classList.add('active');
+    if (id === 'frete') {
+      _freteJaConstruido = false;
+      window.buildFrete({ ...window._dadosUsuario, _uid: usuarioAtual?.uid });
+    }
+  };
+
+  // ── STATS ─────────────────────────────────────────────────
+  async function buildStats(isBreeder, isVendedor) {
+    const row = $('stats-row');
+    row.innerHTML = '<div class="state-msg">Carregando...</div>';
+
+    try {
+      const stats = [];
+
+      if (isBreeder) {
+        const snap = await getDocs(query(collection(db, 'products'), where('breederUid', '==', usuarioAtual.uid)));
+        stats.push({ label: 'Minhas Strains', value: snap.size });
+      }
+      if (isVendedor) {
+        const snap = await getDocs(query(collection(db, 'loja_produtos'), where('vendedorUid', '==', usuarioAtual.uid)));
+        stats.push({ label: 'Meus Produtos', value: snap.size });
+      }
+
+      const pedSnap = await getDocs(query(collection(db, 'pedidos'), where('status', '==', 'confirmado')));
+      stats.push({ label: 'Pedidos Confirmados', value: pedSnap.size });
+
+      row.innerHTML = stats.map(s => `
+        <div class="stat-card">
+          <div class="stat-card-label">${s.label}</div>
+          <div class="stat-card-value">${s.value}</div>
+        </div>`).join('');
+    } catch (_) {
+      row.innerHTML = '<div class="state-err">Erro ao carregar stats.</div>';
+    }
+  }
+
+  // ── TOGGLE SEÇÕES ─────────────────────────────────────────
+  window.toggleSec = (id, onOpen) => {
+    const sec = $(id);
+    sec.classList.toggle('open');
+    if (sec.classList.contains('open') && typeof onOpen === 'function') onOpen();
+  };
+
+  // ── FOTOS ─────────────────────────────────────────────────
+  window.handleFotosUpload = async (input, tipo) => {
+    const arr = tipo === 'strain' ? fotosStrain : fotosProduto;
+    for (const file of Array.from(input.files)) {
+      arr.push(await toBase64(file));
+    }
+    input.value = '';
+    renderFotos(tipo);
+  };
+
+  const renderFotos = (tipo) => {
+    const arr  = tipo === 'strain' ? fotosStrain : fotosProduto;
+    const wrap = $(`${tipo === 'strain' ? 's' : 'p'}-fotos-wrap`);
+    wrap.innerHTML = '';
+    arr.forEach((url, i) => {
+      const div = document.createElement('div');
+      div.className = 'foto-upload-item';
+      div.innerHTML = `
+        <img class="foto-preview-thumb ${url ? 'visible' : ''}" src="${url}" alt="">
+        <span class="foto-upload-label">${url.startsWith('data:') ? '📷 Foto ' + (i+1) : url.length > 40 ? url.slice(0,40)+'…' : url}</span>
+        <button type="button" class="foto-remove-btn" onclick="removerFoto(${i},'${tipo}')">×</button>`;
+      wrap.appendChild(div);
+    });
+  };
+
+  window.removerFoto = (i, tipo) => {
+    (tipo === 'strain' ? fotosStrain : fotosProduto).splice(i, 1);
+    renderFotos(tipo);
+  };
+
+  // ── TAGS ──────────────────────────────────────────────────
+  const setupTagInput = (inputId, wrapId, arr) => {
+    const input = $(inputId);
+    if (!input) return;
+    input.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+        e.preventDefault();
+        const val = input.value.trim().replace(/,/g, '');
+        if (val && !arr.includes(val)) { arr.push(val); renderTags(wrapId, inputId, arr); }
+        input.value = '';
+      }
+      if (e.key === 'Backspace' && !input.value && arr.length) { arr.pop(); renderTags(wrapId, inputId, arr); }
+    });
+  };
+
+  const renderTags = (wrapId, inputId, arr) => {
+    const wrap  = $(wrapId);
+    const input = $(inputId);
+    wrap.innerHTML = '';
+    arr.forEach((t, i) => {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.innerHTML = `${t}<button class="tag-remove" type="button">&times;</button>`;
+      span.querySelector('button').onclick = () => { arr.splice(i, 1); renderTags(wrapId, inputId, arr); };
+      wrap.appendChild(span);
+    });
+    wrap.appendChild(input);
+  };
+
+  setupTagInput('input-efeitos', 'wrap-efeitos', tagsEfeitos);
+  setupTagInput('input-aromas',  'wrap-aromas',  tagsAromas);
+
+  // Bloqueia Enter em inputs de variantes/tags para não disparar submit dos forms
+  ['form-strain', 'form-produto'].forEach(formId => {
+    document.getElementById(formId)?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const tag = e.target.tagName;
+      const isSubmit = e.target.type === 'submit';
+      if (tag === 'TEXTAREA' || isSubmit) return; // textarea: permite; submit: permite
+      if (e.target.classList.contains('tag-input') || e.target.id?.startsWith('v-input-')) return; // tratado pelo handler próprio
+      e.preventDefault(); // bloqueia Enter em todos os outros inputs do form
+    }, true);
+  });
+
+  // ── PEDIDOS UNIFICADOS ────────────────────────────────────
+  let todosPedidosUnificados = [];
+
+  const carregarPedidosUnificados = async () => {
+    const container = $('pedidos-unificados-list');
+    const countEl   = $('count-pedidos-unificados');
+    container.innerHTML = '<div class="state-msg">Carregando...</div>';
+
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/buscarPedidosVendedor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: usuarioAtual.uid })
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error || 'Erro');
+
+      todosPedidosUnificados = (data.pedidos || [])
+        .filter(p => p.status === 'confirmado')
+        .sort((a, b) => {
+          const ta = a.criadoEm?._seconds ? a.criadoEm._seconds * 1000 : new Date(a.criadoEm || 0);
+          const tb = b.criadoEm?._seconds ? b.criadoEm._seconds * 1000 : new Date(b.criadoEm || 0);
+          return tb - ta;
+        });
+
+      countEl.textContent = `${todosPedidosUnificados.length} pedido${todosPedidosUnificados.length !== 1 ? 's' : ''}`;
+      renderPedidosUnificados(todosPedidosUnificados);
+    } catch (e) {
+      container.innerHTML = `<div class="state-err">Erro: ${e.message}</div>`;
+    }
+  };
+
+  const badgeMap = {
+    pendente:   { cls: 'badge-pendente',   label: '⏳ Pendente' },
+    confirmado: { cls: 'badge-confirmado', label: '✅ Confirmado' },
+    cancelado:  { cls: 'badge-cancelado',  label: '❌ Cancelado' }
+  };
+
+  const renderPedidosUnificados = (lista) => {
+    const container = $('pedidos-unificados-list');
+    if (!lista.length) { container.innerHTML = '<div class="state-msg">Nenhum pedido encontrado.</div>'; return; }
+    container.innerHTML = '';
+
+    lista.forEach(p => {
+      const data      = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleDateString('pt-BR') : '—';
+      const hora      = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '';
+      const totalMeu  = p.itensMeus.reduce((s, i) => s + ((i.price||0)*(i.qty||1)), 0);
+      const status    = p.status || 'pendente';
+      const badge     = badgeMap[status] || badgeMap.pendente;
+      const cliente   = p.destinatario?.nome || p.userEmail || '—';
+
+      const itensHtml = p.itensMeus.map(i => `
+        <div class="pedido-item-row">
+          ${i.image ? `<img src="${i.image}" class="pedido-item-img" alt="">` : ''}
+          <div style="flex:1">
+            <div style="font-weight:600">${i.name}</div>
+            <div style="font-size:0.78rem;color:var(--muted)">${i.qty}x · R$ ${((i.price||0)*(i.qty||1)).toFixed(2).replace('.',',')}</div>
+          </div>
+        </div>`).join('');
+
+      const card = document.createElement('div');
+      card.className = 'pedido-card';
+      card.id = `ped-uni-${p.id}`;
+      card.innerHTML = `
+        <div class="pedido-header" onclick="document.getElementById('ped-uni-${p.id}').classList.toggle('open')">
+          <div>
+            <div class="pedido-id">#${p.id.slice(-6).toUpperCase()}</div>
+            <div class="pedido-data">${data} ${hora} · ${cliente}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap">
+            <span class="pedido-total">R$ ${totalMeu.toFixed(2).replace('.',',')}</span>
+            <span class="${badge.cls}" style="padding:0.15rem 0.5rem;border-radius:2px;font-family:'Barlow Condensed';font-size:0.7rem;font-weight:700;text-transform:uppercase">${badge.label}</span>
+            <button class="ver-btn" onclick="event.stopPropagation();abrirModalPedidoUnificado('${p.id}')">Ver</button>
+          </div>
+        </div>
+        <div class="pedido-body">${itensHtml}</div>`;
+      container.appendChild(card);
+    });
+  };
+
+  window.filtrarPedidosUnificados = () => {
+    const busca  = $('search-pedidos-unificados').value.toLowerCase();
+    const status = $('filter-status-unificado').value;
+    renderPedidosUnificados(todosPedidosUnificados.filter(p => {
+      const texto = `${p.id} ${p.userEmail || ''} ${p.destinatario?.nome || ''}`.toLowerCase();
+      const matchBusca  = !busca  || texto.includes(busca);
+      const matchStatus = !status || p.status === status;
+      return matchBusca && matchStatus;
+    }));
+  };
+
+  window.abrirModalPedidoUnificado = (id) => {
+    const p = todosPedidosUnificados.find(p => p.id === id);
+    if (!p) return;
+    const dest = p.destinatario || {};
+    $('mp-id').textContent       = `#${p.id.slice(-6).toUpperCase()}`;
+    $('mp-nome').textContent     = dest.nome     || p.userEmail || '—';
+    $('mp-email').textContent    = dest.email    || p.userEmail || '—';
+    $('mp-telefone').textContent = dest.telefone || '—';
+    $('mp-cpf').textContent      = dest.cpf      || '—';
+    $('mp-cep').textContent      = dest.cep      || '—';
+    const endereco = [dest.rua, dest.numero, dest.complemento, dest.bairro].filter(Boolean).join(', ') || '—';
+    $('mp-endereco').textContent = endereco;
+    $('mp-cidade').textContent   = [dest.cidade, dest.estado].filter(Boolean).join(' / ') || '—';
+    const totalMeu = p.itensMeus.reduce((s, i) => s + ((i.price||0)*(i.qty||1)), 0);
+    $('mp-itens').innerHTML = p.itensMeus.map(i => `
+      <div class="pedido-detail-item">
+        ${i.image ? `<img class="pedido-detail-img" src="${i.image}" alt="">` : ''}
+        <div style="flex:1">
+          <div style="font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase">${i.name}</div>
+          <div style="font-size:0.78rem;color:var(--muted)">${i.qty}x · R$ ${(i.price||0).toFixed(2).replace('.',',')} cada</div>
+        </div>
+        <div style="font-family:'Barlow Condensed';font-weight:700;color:var(--gold)">R$ ${((i.price||0)*(i.qty||1)).toFixed(2).replace('.',',')}</div>
+      </div>`).join('');
+    $('mp-total').textContent = `R$ ${totalMeu.toFixed(2).replace('.',',')}`;
+    $('modal-pedido-overlay').classList.add('open');
+  };
+
+  // ── STRAINS ───────────────────────────────────────────────
+  const carregarStrains = async () => {
+    const container = $('strains-list');
+    try {
+      const snap = await getDocs(query(collection(db, 'products'), where('breederUid', '==', usuarioAtual.uid)));
+      strainsLocais = [];
+      container.innerHTML = '';
+      if (snap.empty) { container.innerHTML = '<div class="state-msg">Nenhuma strain cadastrada.</div>'; return; }
+      snap.forEach(d => { strainsLocais.push({ id: d.id, ...d.data() }); });
+      $('count-strains').textContent = `${strainsLocais.length} strain${strainsLocais.length !== 1 ? 's' : ''}`;
+      renderStrains(strainsLocais);
+    } catch (e) { container.innerHTML = `<div class="state-err">Erro: ${e.message}</div>`; }
+  };
+
+  const renderStrains = (lista) => {
+    const container = $('strains-list');
+    if (!lista.length) { container.innerHTML = '<div class="state-msg">Nenhum resultado.</div>'; return; }
+    container.innerHTML = '';
+    lista.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'product-item';
+      div.innerHTML = `
+        <img class="product-item-img" src="${item.image || ''}" alt="${item.name}" onerror="this.style.display='none'">
+        <div class="product-info">
+          <h4>${item.name}</h4>
+          <p>${item.type || ''} • ${item.flow || ''} • Estoque: <strong style="color:${item.estoque === 0 ? 'var(--red)' : 'var(--green2)'}">${item.estoque ?? '—'}</strong></p>
+        </div>
+        <div class="product-meta">
+          <span class="price-tag">R$ ${(item.price || 0).toFixed(2).replace('.', ',')}</span>
+          <div class="action-btns">
+            <button class="edit-btn" onclick="editarStrain('${item.id}')">Editar</button>
+            <button class="del-btn"  onclick="excluirStrain('${item.id}','${(item.name||'').replace(/'/g,"\\'")}')">Excluir</button>
+          </div>
+        </div>`;
+      container.appendChild(div);
+    });
+  };
+
+  window.filtrarStrains = () => {
+    const busca = $('search-strains').value.toLowerCase();
+    renderStrains(strainsLocais.filter(s => JSON.stringify(s).toLowerCase().includes(busca)));
+  };
+
+  // ── MODAL STRAIN ──────────────────────────────────────────
+  window.abrirModalStrain = () => {
+    resetarStrain();
+    $('strain-modal-title').textContent = 'Nova Strain';
+    $('strain-submit-btn').textContent  = 'Adicionar à Vitrine';
+    $('modal-strain').classList.add('open');
+  };
+
+  window.fecharModalStrain = () => {
+    $('modal-strain').classList.remove('open');
+    resetarStrain();
+  };
+
+  const resetarStrain = () => {
+    $('form-strain')?.reset();
+    $('strain-id').value = '';
+    fotosStrain = []; renderFotos('strain');
+    tagsEfeitos.length = 0; tagsAromas.length = 0;
+    renderTags('wrap-efeitos', 'input-efeitos', tagsEfeitos);
+    renderTags('wrap-aromas',  'input-aromas',  tagsAromas);
+  };
+
+  window.editarStrain = (id) => {
+    const item = strainsLocais.find(s => s.id === id);
+    if (!item) return;
+    resetarStrain();
+    $('strain-id').value        = id;
+    $('s-name').value           = item.name      || '';
+    $('s-genetica').value       = item.genetica  || 'Feminizada';
+    $('s-fotoperiodismo').value = item.fotoperiodismo || 'Fotoperiodo';
+    $('s-flow').value           = item.flow      || '';
+    $('s-price').value          = item.price     || '';
+    $('s-estoque').value        = item.estoque ?? '';
+    $('s-status').value         = item.status    || 'ativo';
+    $('s-pai').value            = item.pai       || '';
+    $('s-mae').value            = item.mae       || '';
+    $('s-thc').value            = item.thc       || 'Baixo (1-7%)';
+    $('s-cbd').value            = item.cbd       || 'Baixo (1-7%)';
+    $('s-indoor').value         = item.indoor    || '';
+    $('s-outdoor').value        = item.outdoor   || '';
+    $('s-desc').value           = item.descricao || '';
+    fotosStrain = item.images?.length ? [...item.images] : (item.image ? [item.image] : []);
+    renderFotos('strain');
+    tagsEfeitos.length = 0; (item.efeitos || []).forEach(v => tagsEfeitos.push(v));
+    tagsAromas.length  = 0; (item.aromas  || []).forEach(v => tagsAromas.push(v));
+    renderTags('wrap-efeitos', 'input-efeitos', tagsEfeitos);
+    renderTags('wrap-aromas',  'input-aromas',  tagsAromas);
+    $('strain-modal-title').textContent = 'Editando Strain';
+    $('strain-submit-btn').textContent  = 'Salvar Alterações';
+    $('modal-strain').classList.add('open');
+  };
+
+  window.salvarStrain = async (e) => {
+    e.preventDefault();
+    const btn = $('strain-submit-btn');
+    const id  = $('strain-id').value;
+    const genetica      = $('s-genetica').value;
+    const fotoperiodismo = $('s-fotoperiodismo').value;
+    const type = fotoperiodismo === 'Automática' ? 'Automática'
+               : fotoperiodismo === 'Fast Flower' ? 'Fast Version'
+               : genetica;
+    const dados = {
+      name: $('s-name').value.trim(), type, genetica, fotoperiodismo,
+      flow: $('s-flow').value.trim(), price: parseFloat($('s-price').value),
+      estoque: parseInt($('s-estoque').value) || 0, status: $('s-status').value,
+      image: fotosStrain[0] || '', images: [...fotosStrain],
+      pai: $('s-pai').value.trim(), mae: $('s-mae').value.trim(),
+      thc: $('s-thc').value, cbd: $('s-cbd').value,
+      indoor: $('s-indoor').value.trim(), outdoor: $('s-outdoor').value.trim(),
+      efeitos: [...tagsEfeitos], aromas: [...tagsAromas],
+      descricao: $('s-desc').value.trim(),
+      breederUid: usuarioAtual.uid, breederEmail: usuarioAtual.email,
+    };
+    try {
+      btn.disabled = true; btn.textContent = 'Salvando...';
+      if (id) { await updateDoc(doc(db, 'products', id), dados); }
+      else    { dados.createdAt = serverTimestamp(); await addDoc(collection(db, 'products'), dados); }
+      fecharModalStrain();
+      await carregarStrains();
+    } catch (err) { alert('Erro: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = id ? 'Salvar Alterações' : 'Adicionar à Vitrine'; }
+  };
+
+  window.excluirStrain = async (id, nome) => {
+    if (!confirm(`Excluir "${nome}"?`)) return;
+    try { await deleteDoc(doc(db, 'products', id)); await carregarStrains(); }
+    catch (err) { alert('Erro: ' + err.message); }
+  };
+
+  // ── PRODUTOS ──────────────────────────────────────────────
+  const carregarProdutos = async () => {
+    const container = $('produtos-list');
+    try {
+      const snap = await getDocs(query(collection(db, 'loja_produtos'), where('vendedorUid', '==', usuarioAtual.uid)));
+      produtosLocais = [];
+      container.innerHTML = '';
+      if (snap.empty) { container.innerHTML = '<div class="state-msg">Nenhum produto cadastrado.</div>'; return; }
+      snap.forEach(d => { produtosLocais.push({ id: d.id, ...d.data() }); });
+      $('count-produtos').textContent = `${produtosLocais.length} produto${produtosLocais.length !== 1 ? 's' : ''}`;
+      renderProdutos(produtosLocais);
+    } catch (e) { container.innerHTML = `<div class="state-err">Erro: ${e.message}</div>`; }
+  };
+
+  const renderProdutos = (lista) => {
+    const container = $('produtos-list');
+    if (!lista.length) { container.innerHTML = '<div class="state-msg">Nenhum resultado.</div>'; return; }
+    container.innerHTML = '';
+    lista.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'product-item';
+      div.innerHTML = `
+        <img class="product-item-img" src="${item.image || ''}" alt="${item.name}" onerror="this.style.display='none'">
+        <div class="product-info">
+          <h4>${item.name}</h4>
+          <p>${item.categoria || ''} • Estoque: <strong style="color:${item.estoque === 0 ? 'var(--red)' : 'var(--green2)'}">${item.estoque ?? '—'}</strong></p>
+        </div>
+        <div class="product-meta">
+          <span class="price-tag">R$ ${(item.price || 0).toFixed(2).replace('.', ',')}</span>
+          <div class="action-btns">
+            <button class="edit-btn" onclick="editarProduto('${item.id}')">Editar</button>
+            <button class="del-btn"  onclick="excluirProduto('${item.id}','${(item.name||'').replace(/'/g,"\\'")}')">Excluir</button>
+          </div>
+        </div>`;
+      container.appendChild(div);
+    });
+  };
+
+  window.filtrarProdutos = () => {
+    const busca = $('search-produtos').value.toLowerCase();
+    renderProdutos(produtosLocais.filter(p => JSON.stringify(p).toLowerCase().includes(busca)));
+  };
+
+  // ── MODAL PRODUTO ─────────────────────────────────────────
+  window.abrirModalProduto = () => {
+    resetarProduto();
+    $('produto-modal-title').textContent = 'Novo Produto';
+    $('produto-submit-btn').textContent  = 'Adicionar à Loja';
+    $('modal-produto').classList.add('open');
+  };
+
+  window.fecharModalProduto = () => {
+    $('modal-produto').classList.remove('open');
+    resetarProduto();
+  };
+
+  const resetarProduto = () => {
+    $('form-produto')?.reset();
+    $('produto-id').value = '';
+    fotosProduto = []; renderFotos('produto');
+    gruposVariantes = []; grupoIdCounter = 0; renderGrupos();
+  };
+
+  window.editarProduto = (id) => {
+    const item = produtosLocais.find(p => p.id === id);
+    if (!item) return;
+    resetarProduto();
+    $('produto-id').value    = id;
+    $('p-name').value        = item.name      || '';
+    $('p-price').value       = item.price     || '';
+    $('p-categoria').value   = item.categoria || 'Roupas';
+    $('p-estoque').value     = item.estoque ?? '';
+    $('p-status').value      = item.status    || 'ativo';
+    $('p-desc').value        = item.descricao || '';
+    fotosProduto = item.images?.length ? [...item.images] : (item.image ? [item.image] : []);
+    renderFotos('produto');
+    gruposVariantes = []; grupoIdCounter = 0;
+    (item.variantes || []).forEach(v => adicionarGrupo(v.nome, v.opcoes));
+    if ($('p-peso'))        $('p-peso').value        = item.peso        || '';
+    if ($('p-largura'))     $('p-largura').value     = item.largura     || '';
+    if ($('p-altura'))      $('p-altura').value      = item.altura      || '';
+    if ($('p-comprimento')) $('p-comprimento').value = item.comprimento || '';
+    if ($('p-fragil'))      $('p-fragil').checked    = !!item.fragil;
+    $('produto-modal-title').textContent = 'Editando Produto';
+    $('produto-submit-btn').textContent  = 'Salvar Alterações';
+    $('modal-produto').classList.add('open');
+  };
+
+  window.salvarProduto = async (e) => {
+    e.preventDefault();
+    const btn = $('produto-submit-btn');
+    const id  = $('produto-id').value;
+
+    const peso        = parseFloat($('p-peso')?.value)        || 0;
+    const largura     = parseFloat($('p-largura')?.value)     || 0;
+    const altura      = parseFloat($('p-altura')?.value)      || 0;
+    const comprimento = parseFloat($('p-comprimento')?.value) || 0;
+
+    // Validar dimensões obrigatórias
+    if (!peso || !largura || !altura || !comprimento) {
+      showToast('⚠️ Preencha todas as dimensões e o peso — são obrigatórios para o cálculo do frete.', 'erro');
+      return;
+    }
+
+    // Bloquear se não tiver caixa cadastrada
+    if (!window._caixasLocais?.length) {
+      showToast('⚠️ Cadastre pelo menos uma caixa de envio antes de adicionar produtos.', 'erro');
+      return;
+    }
+
+    // Bloquear se o produto não couber em nenhuma caixa
+    const cabeEmAlguma = window._caixasLocais.some(c =>
+      largura <= c.largura && altura <= c.altura && comprimento <= c.comprimento
+    );
+    if (!cabeEmAlguma) {
+      showToast('⚠️ Este produto não cabe em nenhuma das suas caixas cadastradas. Cadastre uma caixa maior antes de salvar.', 'erro');
+      return;
+    }
+
+    const dados = {
+      name: $('p-name').value.trim(), price: parseFloat($('p-price').value),
+      categoria: $('p-categoria').value, image: fotosProduto[0] || '', images: [...fotosProduto],
+      descricao: $('p-desc').value.trim(),
+      variantes: gruposVariantes.map(g => ({ nome: g.nome, opcoes: g.tags })),
+      estoque: parseInt($('p-estoque').value) || 0, status: $('p-status').value,
+      vendedorUid: usuarioAtual.uid, vendedorEmail: usuarioAtual.email,
+      peso, largura, altura, comprimento,
+      fragil: !!$('p-fragil')?.checked,
+    };
+    try {
+      btn.disabled = true; btn.textContent = 'Salvando...';
+      if (id) { await updateDoc(doc(db, 'loja_produtos', id), dados); }
+      else    { dados.createdAt = serverTimestamp(); await addDoc(collection(db, 'loja_produtos'), dados); }
+      fecharModalProduto();
+      await carregarProdutos();
+    } catch (err) { showToast('Erro: ' + err.message, 'erro'); }
+    finally { btn.disabled = false; btn.textContent = id ? 'Salvar Alterações' : 'Adicionar à Loja'; }
+  };
+
+  window.excluirProduto = async (id, nome) => {
+    if (!confirm(`Excluir "${nome}"?`)) return;
+    try { await deleteDoc(doc(db, 'loja_produtos', id)); await carregarProdutos(); }
+    catch (err) { alert('Erro: ' + err.message); }
+  };
+
+// ── VARIANTES ─────────────────────────────────────────────
+  
+  // 1. Adicionar Grupo
+  window.adicionarGrupo = (nomeInicial = '', tagsIniciais = []) => {
+    const id = grupoIdCounter++;
+    gruposVariantes.push({ id, nome: nomeInicial, tags: [...tagsIniciais] });
+    renderGrupos();
+  };
+
+  // 2. Remover Grupo (Faltava esta função)
+  window.removerGrupo = (gid) => {
+    gruposVariantes = gruposVariantes.filter(g => g.id !== gid);
+    renderGrupos();
+  };
+
+  // 3. Remover Tag Específica (Faltava esta função)
+  window.removerTagGrupo = (gid, tagIndex) => {
+    const grupo = gruposVariantes.find(g => g.id === gid);
+    if (grupo) {
+      grupo.tags.splice(tagIndex, 1);
+      renderGrupos();
+    }
+  };
+
+  // 4. Função de renderização
+  const renderGrupos = () => {
+    const container = $('variantes-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    gruposVariantes.forEach((grupo) => {
+      const div = document.createElement('div');
+      div.className = 'variante-grupo';
+      const gid = grupo.id;
+      div.innerHTML = `
+        <div class="variante-grupo-header">
+          <input type="text" class="input-nome-grupo" data-gid="${gid}" placeholder="Nome do grupo" value="${grupo.nome}">
+          <button type="button" class="remove-grupo-btn" onclick="removerGrupo(${gid})">×</button>
+        </div>
+        <div class="tag-input-wrap" id="v-wrap-${gid}" onclick="document.getElementById('v-input-${gid}').focus()">
+          ${grupo.tags.map((t, ti) => `<span class="tag">${t}<button type="button" class="tag-remove" onclick="removerTagGrupo(${gid},${ti})">×</button></span>`).join('')}
+          <input class="tag-input" data-gid="${gid}" id="v-input-${gid}" placeholder="Digite e Enter">
+        </div>`;
+      container.appendChild(div);
+    });
+  };
+  // 2. Controlador de eventos (delegação global)
+  document.addEventListener('input', (e) => {
+    if (e.target.classList.contains('input-nome-grupo')) {
+      const gid = parseInt(e.target.dataset.gid);
+      const g = gruposVariantes.find(x => x.id === gid);
+      if (g) g.nome = e.target.value;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.classList.contains('tag-input')) {
+      const gid = parseInt(e.target.dataset.gid);
+      
+      if (e.key === 'Enter') {
+        e.preventDefault(); // Bloqueia o envio do formulário
+        const val = e.target.value.trim().replace(/,/g, '');
+        const g = gruposVariantes.find(x => x.id === gid);
+        if (val && g && !g.tags.includes(val)) {
+          g.tags.push(val);
+          renderGrupos();
+          setTimeout(() => document.getElementById(`v-input-${gid}`)?.focus(), 0);
+        }
+        e.target.value = '';
+      }
+      
+      if (e.key === 'Backspace' && !e.target.value) {
+        const g = gruposVariantes.find(x => x.id === gid);
+        if (g && g.tags.length > 0) {
+          g.tags.pop();
+          renderGrupos();
+        }
+      }
+    }
+  });
+  // ── PEDIDOS ───────────────────────────────────────────────
+  const carregarPedidos = async (tipo) => {
+    const listEl    = $(`pedidos-${tipo}-list`);
+    const countEl   = $(`count-pedidos-${tipo}`);
+    const itensIds  = tipo === 'strains' ? strainsLocais.map(s => s.id) : produtosLocais.map(p => p.id);
+
+    listEl.innerHTML = '<div class="state-msg">Carregando...</div>';
+
+    if (!itensIds.length) {
+      listEl.innerHTML = '<div class="state-msg">Nenhum item cadastrado.</div>';
+      return;
+    }
+
+    try {
+      const snap = await getDocs(query(collection(db, 'pedidos'), where('status', '==', 'confirmado')));
+      let lista = [];
+      snap.forEach(d => {
+        const p = { id: d.id, ...d.data() };
+        const itensMeus = (p.itens || []).filter(i => itensIds.includes(i.id));
+        if (itensMeus.length) lista.push({ ...p, itensMeus });
+      });
+      lista.sort((a, b) => {
+        const ta = a.criadoEm?.toDate?.() || new Date(0);
+        const tb = b.criadoEm?.toDate?.() || new Date(0);
+        return tb - ta;
+      });
+
+      if (tipo === 'strains') todosPedidosStrains  = lista;
+      else                    todosPedidosProdutos = lista;
+
+      countEl.textContent = `${lista.length} pedido${lista.length !== 1 ? 's' : ''}`;
+      renderPedidos(tipo, lista);
+    } catch (e) { listEl.innerHTML = `<div class="state-err">Erro: ${e.message}</div>`; }
+  };
+
+  const renderPedidos = (tipo, lista) => {
+    const container = $(`pedidos-${tipo}-list`);
+    if (!lista.length) { container.innerHTML = '<div class="state-msg">Nenhum pedido encontrado.</div>'; return; }
+    container.innerHTML = '';
+    lista.forEach(p => {
+      const data     = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleDateString('pt-BR') : '—';
+      const totalMeu = p.itensMeus.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+      const itensHtml = p.itensMeus.map(i => `
+        <div class="pedido-item-row">
+          ${i.image ? `<img src="${i.image}" class="pedido-item-img" alt="">` : ''}
+          <div>
+            <div style="font-weight:600">${i.name}</div>
+            <div style="font-size:0.78rem;color:var(--muted)">${i.qty}x · R$ ${((i.price||0)*(i.qty||1)).toFixed(2).replace('.',',')}</div>
+          </div>
+        </div>`).join('');
+
+      const card = document.createElement('div');
+      card.className = 'pedido-card';
+      card.id = `ped-${tipo}-${p.id}`;
+      card.innerHTML = `
+        <div class="pedido-header" onclick="document.getElementById('ped-${tipo}-${p.id}').classList.toggle('open')">
+          <div>
+            <div class="pedido-id">#${p.id.slice(-6).toUpperCase()}</div>
+            <div class="pedido-data">${data} · ${(p.destinatario?.nome || p.userEmail || '—')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <span class="pedido-total">R$ ${totalMeu.toFixed(2).replace('.',',')}</span>
+            <span class="badge-confirmado">✅ Confirmado</span>
+            <button class="ver-btn" onclick="event.stopPropagation();abrirModalPedido('${p.id}','${tipo}')">Ver</button>
+          </div>
+        </div>
+        <div class="pedido-body">${itensHtml}</div>`;
+      container.appendChild(card);
+    });
+  };
+
+  window.filtrarPedidos = (tipo) => {
+    const busca = $(`search-pedidos-${tipo}`).value.toLowerCase();
+    const lista = tipo === 'strains' ? todosPedidosStrains : todosPedidosProdutos;
+    renderPedidos(tipo, lista.filter(p =>
+      p.id.toLowerCase().includes(busca) ||
+      (p.userEmail || '').toLowerCase().includes(busca) ||
+      (p.destinatario?.nome || '').toLowerCase().includes(busca)
+    ));
+  };
+
+  // ── MODAL PEDIDO ──────────────────────────────────────────
+  window.abrirModalPedido = (id, tipo) => {
+    const lista = tipo === 'strains' ? todosPedidosStrains : todosPedidosProdutos;
+    const p = lista.find(p => p.id === id);
+    if (!p) return;
+
+    const dest = p.destinatario || {};
+    $('mp-id').textContent       = `#${p.id.slice(-6).toUpperCase()}`;
+    $('mp-nome').textContent     = dest.nome     || p.userEmail || '—';
+    $('mp-email').textContent    = dest.email    || p.userEmail || '—';
+    $('mp-telefone').textContent = dest.telefone || '—';
+    $('mp-cpf').textContent      = dest.cpf      || '—';
+    $('mp-cep').textContent      = dest.cep      || '—';
+
+    const endereco = [dest.rua, dest.numero, dest.complemento, dest.bairro].filter(Boolean).join(', ') || '—';
+    $('mp-endereco').textContent = endereco;
+    $('mp-cidade').textContent   = [dest.cidade, dest.estado].filter(Boolean).join(' / ') || '—';
+
+    const totalMeu = p.itensMeus.reduce((s, i) => s + ((i.price||0)*(i.qty||1)), 0);
+    $('mp-itens').innerHTML = p.itensMeus.map(i => `
+      <div class="pedido-detail-item">
+        ${i.image ? `<img class="pedido-detail-img" src="${i.image}" alt="">` : ''}
+        <div style="flex:1">
+          <div style="font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase">${i.name}</div>
+          <div style="font-size:0.78rem;color:var(--muted)">${i.qty}x · R$ ${(i.price||0).toFixed(2).replace('.',',')} cada</div>
+        </div>
+        <div style="font-family:'Barlow Condensed';font-weight:700;color:var(--gold)">R$ ${((i.price||0)*(i.qty||1)).toFixed(2).replace('.',',')}</div>
+      </div>`).join('');
+    $('mp-total').textContent = `R$ ${totalMeu.toFixed(2).replace('.',',')}`;
+    // Info frete e botão etiqueta
+    window._pedidoAtualId = id;
+    const freteInfo   = document.getElementById('mp-frete-info');
+    const btnEtiqueta = document.getElementById('btn-gerar-etiqueta');
+    if (freteInfo && btnEtiqueta) {
+      if (p.frete?.nome || p.frete?.transportadora) {
+        document.getElementById('mp-frete-nome').textContent  = p.frete.nome || p.frete.transportadora || '—';
+        document.getElementById('mp-frete-prazo').textContent = p.frete.prazo ? `Prazo: ${p.frete.prazo} dias úteis` : '';
+        freteInfo.style.display   = 'block';
+        btnEtiqueta.style.display = 'block';
+      } else {
+        freteInfo.style.display   = 'none';
+        btnEtiqueta.style.display = 'none';
+      }
+    }
+
+    $('modal-pedido-overlay').classList.add('open');
+  };
+
+  window.fecharModalPedido = () => $('modal-pedido-overlay').classList.remove('open');
+
+  // ── PERFIL ────────────────────────────────────────────────
+  const buildPerfil = async (userData) => {
+    const isBreeder = userRoles.includes('breeder');
+    const grid = $('perfil-grid');
+    grid.innerHTML = '';
+
+    // Card Info
+    const cardInfo = document.createElement('div');
+    cardInfo.className = 'perfil-card';
+    cardInfo.innerHTML = `
+      <h3>Informações</h3>
+      <form onsubmit="salvarPerfil(event)">
+        <div class="form-group">
+          <label>Foto de Perfil</label>
+          <div class="perfil-foto-wrap">
+            <div class="perfil-foto-preview" id="perfil-foto-preview">
+              🧑<img id="perfil-foto-preview-img" src="${userData?.photo || ''}" alt="" class="${userData?.photo ? 'visible' : ''}">
+            </div>
+            <label class="perfil-foto-upload-label" for="perfil-foto-input">
+              📁 Escolher arquivo...
+              <span id="perfil-foto-nome" style="font-weight:400;text-transform:none;font-size:0.72rem;color:var(--muted)">${userData?.photo ? 'foto atual' : 'nenhum arquivo'}</span>
+            </label>
+            <input type="file" id="perfil-foto-input" style="display:none" accept="image/*">
+          </div>
+        </div>
+        <div class="form-group"><label>Nome</label><input type="text" id="perfil-nome" value="${userData?.name || ''}"></div>
+        <div style="background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:4px;padding:0.8rem 1rem;margin-bottom:0.8rem"><div style="font-size:0.82rem;color:var(--gold);font-weight:700">🚚 Frete e Pagamento foram movidos para a aba <strong>Frete &amp; Pagamento</strong></div></div>
+        ${isBreeder ? `
+          <div class="section-divider">Redes Sociais</div>
+          <div class="form-group"><label>Instagram</label><input type="url" id="perfil-instagram" value="${userData?.instagram || ''}" placeholder="https://instagram.com/..."></div>
+          <div class="form-group"><label>YouTube</label><input type="url" id="perfil-youtube" value="${userData?.youtube || ''}" placeholder="https://youtube.com/..."></div>
+          <div class="form-group"><label>Twitter / X</label><input type="url" id="perfil-twitter" value="${userData?.twitter || ''}" placeholder="https://x.com/..."></div>
+          <div class="form-group"><label>Facebook</label><input type="url" id="perfil-facebook" value="${userData?.facebook || ''}" placeholder="https://facebook.com/..."></div>
+          <div class="section-divider">Bio <span style="font-weight:400;text-transform:none;font-size:0.75rem;color:var(--muted)" id="bio-count">(${(userData?.bio||'').length}/280)</span></div>
+          <div class="form-group"><textarea id="perfil-bio" maxlength="280" rows="4" oninput="document.getElementById('bio-count').textContent='('+this.value.length+'/280)'">${userData?.bio || ''}</textarea></div>
+        ` : ''}
+        <button type="submit" class="submit-btn" style="margin-top:0.5rem">Salvar Perfil</button>
+      </form>`;
+    grid.appendChild(cardInfo);
+
+    // Card Senha
+    const cardSenha = document.createElement('div');
+    cardSenha.className = 'perfil-card';
+    cardSenha.innerHTML = `
+      <h3>Alterar Senha</h3>
+      <form onsubmit="salvarSenha(event)">
+        <div class="form-group"><label>Senha Atual</label><input type="password" id="current-pass" placeholder="Senha atual"></div>
+        <div class="form-group"><label>Nova Senha</label><input type="password" id="new-pass" placeholder="Mínimo 6 caracteres"></div>
+        <div class="form-group"><label>Confirmar Nova Senha</label><input type="password" id="confirm-pass" placeholder="Repita a nova senha"></div>
+        <button type="submit" class="submit-btn" style="margin-top:0.5rem">Alterar Senha</button>
+      </form>`;
+    grid.appendChild(cardSenha);
+
+    // Upload foto
+    const fotoInput = $('perfil-foto-input');
+    if (fotoInput) {
+      fotoInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const b64 = await toBase64(file);
+        const img = $('perfil-foto-preview-img');
+        img.src = b64; img.classList.add('visible');
+        $('perfil-foto-nome').textContent = file.name;
+        fotoInput.dataset.base64 = b64;
+      });
+    }
+  };
+
+  window.salvarPerfil = async (e) => {
+    e.preventDefault();
+    const user    = auth.currentUser;
+    const isBreeder = userRoles.includes('breeder');
+    const novaFoto = $('perfil-foto-input')?.dataset.base64 || $('perfil-foto-preview-img')?.src || '';
+    try {
+      const update = {
+        name:  $('perfil-nome')?.value || '',
+        photo: novaFoto,
+      };
+      if (isBreeder) {
+        update.instagram = $('perfil-instagram')?.value?.trim() || '';
+        update.youtube   = $('perfil-youtube')?.value?.trim()   || '';
+        update.twitter   = $('perfil-twitter')?.value?.trim()   || '';
+        update.facebook  = $('perfil-facebook')?.value?.trim()  || '';
+        update.bio       = ($('perfil-bio')?.value || '').trim().slice(0, 280);
+      }
+      await setDoc(doc(db, 'users', user.uid), update, { merge: true });
+      showToast('✅ Perfil salvo!');
+    } catch (err) { showToast('Erro: ' + err.message, 'erro'); }
+  };
+
+  window.toggleSenhaVis = (inputId, btn) => {
+    const el = $(inputId);
+    if (!el) return;
+    const shown = el.type === 'text';
+    el.type = shown ? 'password' : 'text';
+    btn.textContent = shown ? '👁' : '🙈';
+  };
+
+  window.salvarSenha = async (e) => {
+    e.preventDefault();
+    const user        = auth.currentUser;
+    const currentPass = $('current-pass').value;
+    const newPass     = $('new-pass').value;
+    const confirmPass = $('confirm-pass').value;
+    if (!currentPass || !newPass || !confirmPass) { showToast('Preencha todos os campos.', 'erro'); return; }
+    if (newPass !== confirmPass) { showToast('As senhas não coincidem.', 'erro'); return; }
+    if (newPass.length < 6)     { showToast('Mínimo 6 caracteres.', 'erro'); return; }
+    try {
+      const cred = EmailAuthProvider.credential(user.email, currentPass);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, newPass);
+      showToast('✅ Senha alterada!');
+      $('current-pass').value = ''; $('new-pass').value = ''; $('confirm-pass').value = '';
+    } catch (err) {
+      if (err.code === 'auth/wrong-password') showToast('Senha atual incorreta.', 'erro');
+      else showToast('Erro: ' + err.message, 'erro');
+    }
+  };
+
+  // ── NOTIFICAÇÕES ──────────────────────────────────────────
+  const NOTIF_KEY = `notifs_dash_${location.hostname}`;
+  let notificacoes = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+  const salvarNotifs = () => localStorage.setItem(NOTIF_KEY, JSON.stringify(notificacoes));
+
+  const atualizarBadge = () => {
+    const naoLidas = notificacoes.filter(n => !n.lida).length;
+    const badge = $('notif-badge');
+    badge.textContent = naoLidas > 9 ? '9+' : naoLidas;
+    badge.classList.toggle('visible', naoLidas > 0);
+  };
+
+  const renderNotifs = () => {
+    const list = $('notif-list');
+    if (!notificacoes.length) { list.innerHTML = '<div class="notif-empty">Nenhuma notificação.</div>'; atualizarBadge(); return; }
+    list.innerHTML = notificacoes.slice().reverse().map(n => `
+      <div class="notif-item ${n.lida ? '' : 'unread'}" onclick="marcarLida('${n.id}')">
+        <span style="font-size:1.1rem">📦</span>
+        <div>
+          <div class="notif-item-title">${n.titulo}</div>
+          <div class="notif-item-sub">${new Date(n.timestamp).toLocaleString('pt-BR')} · ${n.sub}</div>
+        </div>
+      </div>`).join('');
+    atualizarBadge();
+  };
+
+  window.toggleNotif = () => {
+    $('notif-dropdown').classList.toggle('open');
+    if ($('notif-dropdown').classList.contains('open')) renderNotifs();
+  };
+
+  window.marcarLida = (id) => {
+    const n = notificacoes.find(n => n.id === id);
+    if (n) { n.lida = true; salvarNotifs(); renderNotifs(); }
+  };
+
+  window.limparNotifs = () => { notificacoes = []; salvarNotifs(); renderNotifs(); };
+
+  document.addEventListener('click', (e) => {
+    if (!$('notif-wrap').contains(e.target)) $('notif-dropdown').classList.remove('open');
+  });
+
+  // ── LISTENER PEDIDOS ──────────────────────────────────────
+  const iniciarListenerPedidos = (isBreeder, isVendedor) => {
+    const jaVistosKey = `notifs_vistos_${usuarioAtual?.uid}`;
+    const jaVistos = new Set(JSON.parse(localStorage.getItem(jaVistosKey) || '[]'));
+
+    onSnapshot(
+      query(collection(db, 'pedidos'), where('status', '==', 'confirmado')),
+      (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type !== 'added') return;
+          const pedido = { id: change.doc.id, ...change.doc.data() };
+          if (jaVistos.has(pedido.id)) return;
+
+          const strainIds  = strainsLocais.map(s => s.id);
+          const prodIds    = produtosLocais.map(p => p.id);
+          const todosIds   = [...strainIds, ...prodIds];
+          const itensMeus  = (pedido.itens || []).filter(i => todosIds.includes(i.id));
+          if (!itensMeus.length) return;
+
+          jaVistos.add(pedido.id);
+          localStorage.setItem(jaVistosKey, JSON.stringify([...jaVistos]));
+
+          notificacoes.push({
+            id:        pedido.id + '_' + Date.now(),
+            titulo:    `Novo Pedido #${pedido.id.slice(-6).toUpperCase()}`,
+            sub:       `${itensMeus.length} item(s) · R$ ${itensMeus.reduce((s,i)=>s+(i.price*i.qty),0).toFixed(2).replace('.',',')}`,
+            timestamp: Date.now(),
+            lida:      false,
+          });
+          salvarNotifs();
+          atualizarBadge();
+        });
+      }
+    );
+  };
+</script>
+<!-- MODAL CAIXA -->
+<div class="modal-overlay" id="modal-caixa" onclick="if(event.target===this)fecharModalCaixa()">
+  <div class="modal-box" style="max-width:460px">
+    <button class="modal-close" onclick="fecharModalCaixa()">✕</button>
+    <h3 id="caixa-modal-title">Nova Caixa</h3>
+    <div class="form-group"><label>Nome</label><input type="text" id="caixa-nome" placeholder="Ex: Pequena, Média, Grande"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Largura (cm)</label><input type="number" id="caixa-largura" placeholder="Ex: 16" step="0.1" min="0"></div>
+      <div class="form-group"><label>Altura (cm)</label><input type="number" id="caixa-altura" placeholder="Ex: 5" step="0.1" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Comprimento (cm)</label><input type="number" id="caixa-comprimento" placeholder="Ex: 22" step="0.1" min="0"></div>
+      <div class="form-group"><label>Peso Máximo (kg)</label><input type="number" id="caixa-peso-max" placeholder="Opcional" step="0.1" min="0"></div>
+    </div>
+    <input type="hidden" id="caixa-edit-idx" value="">
+    <button class="submit-btn" onclick="salvarCaixa()">Salvar Caixa</button>
+    <button class="cancel-btn" onclick="fecharModalCaixa()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  // ── SHOW TOAST ────────────────────────────────────────────
+  if (!window.showToast) {
+    window.showToast = (msg, tipo = 'ok') => {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = `position:fixed;bottom:2rem;right:2rem;background:${tipo==='erro'?'var(--red)':'var(--green)'};color:#fff;padding:0.8rem 1.5rem;border-radius:4px;font-family:'Barlow Condensed';font-weight:700;font-size:1rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4)`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    };
+  }
+
+  // ── CAIXAS ────────────────────────────────────────────────
+  window._caixasLocais = [];
+  window._pedidoAtualId = null;
+
+  window.renderCaixasLista = () => {
+    const wrap = document.getElementById('caixas-lista');
+    if (!wrap) return;
+    if (!window._caixasLocais.length) {
+      wrap.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:0.4rem 0">Nenhuma caixa cadastrada ainda.</div>';
+      return;
+    }
+    wrap.innerHTML = window._caixasLocais.map((c, i) => `
+      <div style="display:flex;align-items:center;gap:0.6rem;background:var(--bg3);border:1px solid var(--border);padding:0.6rem 0.8rem;border-radius:2px;margin-bottom:0.4rem">
+        <div style="flex:1">
+          <div style="font-family:'Barlow Condensed';font-size:1rem;font-weight:700;text-transform:uppercase">${c.nome}</div>
+          <div style="font-size:0.78rem;color:var(--muted)">${c.largura}×${c.altura}×${c.comprimento} cm${c.pesoMax ? ' · ' + c.pesoMax + ' kg máx' : ''}</div>
+        </div>
+        <button onclick="editarCaixa(${i})" class="edit-btn" style="font-size:0.78rem;padding:0.3rem 0.6rem">Editar</button>
+        <button onclick="removerCaixa(${i})" class="del-btn" style="font-size:0.78rem;padding:0.3rem 0.6rem">Remover</button>
+      </div>`).join('');
+  };
+
+  window.abrirModalCaixa = () => {
+    document.getElementById('caixa-modal-title').textContent = 'Nova Caixa';
+    ['caixa-nome','caixa-largura','caixa-altura','caixa-comprimento','caixa-peso-max'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('caixa-edit-idx').value = '';
+    document.getElementById('modal-caixa').classList.add('open');
+  };
+
+  window.fecharModalCaixa = () => document.getElementById('modal-caixa').classList.remove('open');
+
+  window.editarCaixa = (idx) => {
+    const c = window._caixasLocais[idx];
+    if (!c) return;
+    document.getElementById('caixa-modal-title').textContent = 'Editar Caixa';
+    document.getElementById('caixa-nome').value        = c.nome        || '';
+    document.getElementById('caixa-largura').value     = c.largura     || '';
+    document.getElementById('caixa-altura').value      = c.altura      || '';
+    document.getElementById('caixa-comprimento').value = c.comprimento || '';
+    document.getElementById('caixa-peso-max').value    = c.pesoMax     || '';
+    document.getElementById('caixa-edit-idx').value    = idx;
+    document.getElementById('modal-caixa').classList.add('open');
+  };
+
+  window.removerCaixa = (idx) => {
+    if (!confirm('Remover esta caixa?')) return;
+    window._caixasLocais.splice(idx, 1);
+    window.renderCaixasLista();
+    _freteJaConstruido = true;
+
+    // Preencher inputs com valores descriptografados
+    const elCepBuild   = document.getElementById('fp-cep-origem');
+    const elTokenBuild = document.getElementById('fp-me-token');
+    const elTagBuild   = document.getElementById('fp-infinite-tag');
+    if (elCepBuild)   elCepBuild.value   = cepOrigem;
+    if (elTokenBuild) elTokenBuild.value = meToken;
+    if (elTagBuild)   elTagBuild.value   = infiniteTag;
+
+    grid.style.transition = 'opacity 0.25s ease';
+    grid.style.opacity    = '1';
+  };
+
+  // Atualiza só os valores dos inputs sem recriar o DOM
+  window.atualizarValoresFrete = async () => {
+    let cepOrigem   = window._credsFrete?.cepOrigem   || '';
+    let meToken     = window._credsFrete?.meToken     || '';
+    let infiniteTag = window._credsFrete?.infiniteTag || '';
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/buscarCredenciaisVendedor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: window._freteUid || window._auth?.currentUser?.uid })
+      });
+      const creds = await resp.json();
+      if (creds.ok) {
+        cepOrigem   = creds.cepOrigem   || '';
+        meToken     = creds.meToken     || '';
+        infiniteTag = creds.infiniteTag || '';
+        window._credsFrete = { cepOrigem, meToken, infiniteTag };
+      }
+    } catch (_) {}
+    const elCep = document.getElementById('fp-cep-origem');
+    const elToken = document.getElementById('fp-me-token');
+    const elTag = document.getElementById('fp-infinite-tag');
+    if (elCep)   elCep.value   = cepOrigem;
+    if (elToken) elToken.value = meToken;
+    if (elTag)   elTag.value   = infiniteTag;
+  };
+
+  window.salvarCaixa = () => {
+    const nome        = document.getElementById('caixa-nome').value.trim();
+    const largura     = parseFloat(document.getElementById('caixa-largura').value);
+    const altura      = parseFloat(document.getElementById('caixa-altura').value);
+    const comprimento = parseFloat(document.getElementById('caixa-comprimento').value);
+    const pesoMax     = parseFloat(document.getElementById('caixa-peso-max').value) || null;
+    const editIdx     = document.getElementById('caixa-edit-idx').value;
+
+    if (!nome)                              { showToast('Nome é obrigatório.', 'erro'); return; }
+    if (!largura || !altura || !comprimento) { showToast('Preencha todas as dimensões.', 'erro'); return; }
+
+    const caixa = { nome, largura, altura, comprimento, pesoMax };
+    if (editIdx !== '') window._caixasLocais[parseInt(editIdx)] = caixa;
+    else                window._caixasLocais.push(caixa);
+
+    window.renderCaixasLista();
+    window.fecharModalCaixa();
+    showToast('✅ Caixa salva!');
+  };
+
+  // ── FRETE & PAGAMENTO ─────────────────────────────────────
+  let _freteJaConstruido = false;
+
+  window.buildFrete = async (userData) => {
+    const grid = document.getElementById('frete-grid');
+    if (!grid) return;
+
+    // Se já foi construído, só atualizar os valores dos inputs
+    if (_freteJaConstruido) {
+      window.atualizarValoresFrete();
+      return;
+    }
+
+    // Fade suave
+    grid.style.opacity = '0';
+
+    // Buscar credenciais descriptografadas via CF
+    let cepOrigem   = '';
+    let meToken     = '';
+    let infiniteTag = userData?.infiniteTag || '';
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/buscarCredenciaisVendedor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: userData?._uid || window._auth?.currentUser?.uid })
+      });
+      const creds = await resp.json();
+      if (creds.ok) {
+        cepOrigem   = creds.cepOrigem   || '';
+        meToken     = creds.meToken     || '';
+        infiniteTag = creds.infiniteTag || infiniteTag;
+      }
+    } catch (_) {}
+
+    // Guardar uid e credenciais para uso posterior
+    window._freteUid = userData?._uid || window._auth?.currentUser?.uid;
+    window._credsFrete = { cepOrigem, meToken, infiniteTag };
+
+    const dadosMesclados = { ...userData, cepOrigem, meToken, infiniteTag };
+
+    grid.innerHTML = '';
+    window._caixasLocais = userData?.caixas || [];
+    const transpSalvas   = userData?.transportadoras || [];
+    const seguroEstados  = userData?.seguroEstados   || [];
+
+    // Card Ativação
+    window.renderAtivacao(dadosMesclados);
+
+    // Card Pagamento
+    const cardPag = document.createElement('div');
+    cardPag.className = 'perfil-card';
+    cardPag.innerHTML = `
+      <h3>💳 Pagamento</h3>
+      <form onsubmit="salvarFretePagamento(event)">
+        <div class="section-divider">InfinitePay</div>
+        <div class="form-group">
+          <label>InfiniteTag</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700">$</span>
+            <input type="text" id="fp-infinite-tag" value="${userData?.infiniteTag || ''}" placeholder="suatag" style="padding-left:1.8rem">
+          </div>
+        </div>
+        <div style="background:rgba(58,125,68,0.08);border:1px solid var(--green);border-radius:4px;padding:0.8rem 1rem;margin-top:0.5rem">
+          <div style="font-size:0.78rem;color:var(--green2);font-weight:700;margin-bottom:0.3rem">✅ Como configurar</div>
+          <div style="font-size:0.75rem;color:var(--muted);line-height:1.8">
+            1. Baixe o app <strong style="color:var(--white)">InfinitePay</strong> e crie sua conta gratuita (PF aceito)<br>
+            2. Sua InfiniteTag aparece no canto superior esquerdo do app<br>
+            3. Ative o <strong style="color:var(--white)">Checkout</strong> em Vendas → Checkout<br>
+            4. No app, vá em <strong style="color:var(--white)">Checkout → Depois do pagamento</strong><br>
+            5. Em <strong style="color:var(--white)">"URL do Webhook"</strong>, cole:<br>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin:0.4rem 0">
+              <code style="background:var(--bg2);border:1px solid var(--border);padding:0.3rem 0.6rem;border-radius:2px;font-size:0.7rem;color:var(--gold);flex:1;word-break:break-all">https://us-central1-phenobrasil.cloudfunctions.net/infinitePayWebhook</code>
+              <button type="button" onclick="navigator.clipboard.writeText('https://us-central1-phenobrasil.cloudfunctions.net/infinitePayWebhook').then(()=>showToast('✅ Copiado!'))" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.3rem 0.6rem;font-family:'Barlow Condensed';font-size:0.72rem;font-weight:700;cursor:pointer;border-radius:2px;white-space:nowrap">📋 Copiar</button>
+            </div>
+            6. Cole sua tag aqui e salve
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" style="margin-top:1rem">Salvar Pagamento</button>
+      </form>`;
+    grid.appendChild(cardPag);
+
+    // Card Frete
+    const cardFrete = document.createElement('div');
+    cardFrete.className = 'perfil-card';
+    cardFrete.innerHTML = `
+      <h3>🚚 Frete</h3>
+      <form onsubmit="salvarFretePagamento(event)">
+        <div class="section-divider">Configuração ME</div>
+        <div class="form-group">
+          <label>CEP de Origem</label>
+          <input type="text" id="fp-cep-origem" value="${userData?.cepOrigem || ''}" placeholder="00000-000" maxlength="9">
+          <span style="font-size:0.72rem;color:var(--muted);display:block;margin-top:0.3rem">CEP de onde seus produtos serão enviados.</span>
+        </div>
+        <div class="form-group">
+          <label>Token Melhor Envio</label>
+          <div style="position:relative">
+            <input type="password" id="fp-me-token" value="${userData?.meToken || ''}" placeholder="Token da sua conta Melhor Envio" style="padding-right:2.5rem">
+            <button type="button" onclick="toggleSenhaVis('fp-me-token',this)" style="position:absolute;right:0.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer">👁</button>
+          </div>
+          <span style="font-size:0.72rem;color:var(--muted);display:block;margin-top:0.3rem">Gere em <strong style="color:var(--white)">melhorenvio.com.br → Tokens de acesso</strong>.</span>
+        </div>
+        <div class="section-divider">Transportadoras</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.8rem">Marque quais você oferece. Se nenhuma marcada, todas serão exibidas.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;margin-bottom:1rem">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="1" style="accent-color:var(--gold)"> Correios PAC</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="2" style="accent-color:var(--gold)"> Correios SEDEX</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="5" style="accent-color:var(--gold)"> Correios Mini Envios</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="3" style="accent-color:var(--gold)"> Jadlog Package</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="27" style="accent-color:var(--gold)"> Jadlog Package Centralizado</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="4" style="accent-color:var(--gold)"> Jadlog .com</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="12" style="accent-color:var(--gold)"> LATAM Cargo 4Fácil</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="15" style="accent-color:var(--gold)"> Azul Cargo Expresso</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="16" style="accent-color:var(--gold)"> Azul Cargo e-commerce</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="17" style="accent-color:var(--gold)"> Buslog Rodoviário</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="31" style="accent-color:var(--gold)"> Loggi Express</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="34" style="accent-color:var(--gold)"> Loggi Ponto</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="40" style="accent-color:var(--gold)"> Loggi Coleta</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="33" style="accent-color:var(--gold)"> J&T Express</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="transp-check" value="35" style="accent-color:var(--gold)"> Total Express</label>
+        </div>
+        <div class="section-divider">Seguro por Estado</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.8rem">Marque os estados onde o seguro é aplicado automaticamente.</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.4rem;margin-bottom:1rem">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="AC" style="accent-color:var(--gold)"> AC</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="AL" style="accent-color:var(--gold)"> AL</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="AP" style="accent-color:var(--gold)"> AP</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="AM" style="accent-color:var(--gold)"> AM</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="BA" style="accent-color:var(--gold)"> BA</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="CE" style="accent-color:var(--gold)"> CE</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="DF" style="accent-color:var(--gold)"> DF</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="ES" style="accent-color:var(--gold)"> ES</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="GO" style="accent-color:var(--gold)"> GO</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="MA" style="accent-color:var(--gold)"> MA</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="MT" style="accent-color:var(--gold)"> MT</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="MS" style="accent-color:var(--gold)"> MS</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="MG" style="accent-color:var(--gold)"> MG</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="PA" style="accent-color:var(--gold)"> PA</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="PB" style="accent-color:var(--gold)"> PB</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="PR" style="accent-color:var(--gold)"> PR</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="PE" style="accent-color:var(--gold)"> PE</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="PI" style="accent-color:var(--gold)"> PI</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="RJ" style="accent-color:var(--gold)"> RJ</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="RN" style="accent-color:var(--gold)"> RN</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="RS" style="accent-color:var(--gold)"> RS</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="RO" style="accent-color:var(--gold)"> RO</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="RR" style="accent-color:var(--gold)"> RR</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="SC" style="accent-color:var(--gold)"> SC</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="SP" style="accent-color:var(--gold)"> SP</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="SE" style="accent-color:var(--gold)"> SE</label>
+<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem"><input type="checkbox" class="seguro-estado" value="TO" style="accent-color:var(--gold)"> TO</label>
+        </div>
+        <div class="section-divider">📦 Caixas de Envio</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem">${window._userRoles?.includes('breeder') ? '💡 Para sementes, uma caixa pequena já é suficiente.' : ''} Cadastre pelo menos 1 caixa.</div>
+        <div id="caixas-lista"></div>
+        <button type="button" onclick="abrirModalCaixa()" class="add-foto-btn" style="margin:0.5rem 0 1rem">+ Adicionar Caixa</button>
+        <button type="submit" class="submit-btn">Salvar Configurações</button>
+      </form>`;
+    grid.appendChild(cardFrete);
+
+    // Marcar valores salvos
+    document.querySelectorAll('.transp-check').forEach(el => {
+      el.checked = transpSalvas.includes(el.value);
+    });
+    document.querySelectorAll('.seguro-estado').forEach(el => {
+      el.checked = seguroEstados.includes(el.value);
+    });
+    window.renderCaixasLista();
+    _freteJaConstruido = true;
+
+    // Preencher inputs com valores descriptografados
+    const elCepBuild   = document.getElementById('fp-cep-origem');
+    const elTokenBuild = document.getElementById('fp-me-token');
+    const elTagBuild   = document.getElementById('fp-infinite-tag');
+    if (elCepBuild)   elCepBuild.value   = cepOrigem;
+    if (elTokenBuild) elTokenBuild.value = meToken;
+    if (elTagBuild)   elTagBuild.value   = infiniteTag;
+
+    grid.style.transition = 'opacity 0.25s ease';
+    grid.style.opacity    = '1';
+  };
+
+  // Atualiza só os valores dos inputs sem recriar o DOM
+  window.atualizarValoresFrete = async () => {
+    let cepOrigem   = window._credsFrete?.cepOrigem   || '';
+    let meToken     = window._credsFrete?.meToken     || '';
+    let infiniteTag = window._credsFrete?.infiniteTag || '';
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/buscarCredenciaisVendedor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: window._freteUid || window._auth?.currentUser?.uid })
+      });
+      const creds = await resp.json();
+      if (creds.ok) {
+        cepOrigem   = creds.cepOrigem   || '';
+        meToken     = creds.meToken     || '';
+        infiniteTag = creds.infiniteTag || '';
+        window._credsFrete = { cepOrigem, meToken, infiniteTag };
+      }
+    } catch (_) {}
+    const elCep = document.getElementById('fp-cep-origem');
+    const elToken = document.getElementById('fp-me-token');
+    const elTag = document.getElementById('fp-infinite-tag');
+    if (elCep)   elCep.value   = cepOrigem;
+    if (elToken) elToken.value = meToken;
+    if (elTag)   elTag.value   = infiniteTag;
+  };
+
+  window.salvarFretePagamento = async (e) => {
+    e.preventDefault();
+    const db_ref   = window._db;
+    const auth_ref = window._auth;
+    const user     = auth_ref?.currentUser;
+    if (!user) return;
+
+    try {
+      const infiniteTag     = (document.getElementById('fp-infinite-tag')?.value || '').trim().replace(/^\$/, '');
+      const cepOrigem       = (document.getElementById('fp-cep-origem')?.value   || '').trim();
+      const meToken         = (document.getElementById('fp-me-token')?.value     || '').trim();
+      const transportadoras = [...document.querySelectorAll('.transp-check:checked')].map(el => el.value);
+      const seguroEstados   = [...document.querySelectorAll('.seguro-estado:checked')].map(el => el.value);
+
+      // Campos públicos
+      const uid_frete = window._freteUid || user?.uid;
+      const { setDoc: _setDoc, doc: _doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await _setDoc(_doc(db_ref, 'users', uid_frete), {
+        infiniteTag, transportadoras, seguroEstados, caixas: window._caixasLocais
+      }, { merge: true });
+
+      // Campos sensíveis via CF
+      if (cepOrigem || meToken) {
+        const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/salvarCredenciaisVendedor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: user.uid, cepOrigem, meToken })
+        });
+        const result = await resp.json();
+        if (!result.ok) throw new Error(result.error || 'Erro ao salvar credenciais');
+      }
+
+      // Atualizar dadosUsuario global
+      window._dadosUsuario = {
+        ...window._dadosUsuario,
+        infiniteTag, cepOrigem, meToken,
+        transportadoras, seguroEstados,
+        caixas: window._caixasLocais
+      };
+      window._credsFrete = { cepOrigem, meToken, infiniteTag };
+
+      // Feedback visual nos botões de submit
+      document.querySelectorAll('#frete-grid .submit-btn').forEach(btn => {
+        const orig = btn.textContent;
+        btn.textContent = '✅ Salvo!';
+        btn.style.background = 'var(--gold)';
+        btn.style.color = '#000';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+      });
+
+      showToast('✅ Configurações salvas!');
+      window.renderAtivacao(window._dadosUsuario);
+    } catch (err) { showToast('Erro: ' + err.message, 'erro'); }
+  };
+
+  // ── ATIVAÇÃO ──────────────────────────────────────────────
+  window.renderAtivacao = (userData) => {
+    const existente = document.getElementById('card-ativacao');
+    if (existente) existente.remove();
+    const grid = document.getElementById('frete-grid');
+    if (!grid) return;
+
+    const nome        = userData?.name  || userData?.nome  || '';
+    const foto        = userData?.photo || '';
+    const infiniteTag = userData?.infiniteTag || '';
+    const cepOrigem   = userData?.cepOrigem   || '';
+    const meToken     = userData?.meToken     || '';
+    const temCaixa    = (userData?.caixas || []).length > 0;
+
+    const passos = [
+      { label: 'Dados pessoais (nome e foto)', ok: !!(nome && foto) },
+      { label: 'Pagamento configurado (InfinitePay)', ok: !!infiniteTag },
+      { label: 'Frete configurado (CEP + Token ME)', ok: !!(cepOrigem && meToken) },
+      { label: 'Pelo menos 1 caixa cadastrada', ok: temCaixa },
+    ];
+    const todos = passos.every(p => p.ok);
+    const card  = document.createElement('div');
+    card.id = 'card-ativacao';
+    card.style.cssText = `background:${todos ? 'rgba(58,125,68,0.1)' : 'rgba(201,168,76,0.08)'};border:1px solid ${todos ? 'var(--green)' : 'var(--gold)'};border-radius:4px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;grid-column:1/-1`;
+    card.innerHTML = todos
+      ? `<div style="font-family:'Barlow Condensed';font-size:1.3rem;font-weight:800;color:var(--green2)">🎉 Seu perfil está ativo!</div><div style="font-size:0.85rem;color:var(--muted);margin-top:0.3rem">Tudo configurado. Seus produtos estão disponíveis para venda.</div>`
+      : `<div style="font-family:'Barlow Condensed';font-size:1.1rem;font-weight:800;color:var(--gold);margin-bottom:0.8rem">⚠️ Complete seu perfil para ativar as vendas</div>
+         ${passos.map((p,i) => `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.3rem 0;font-size:0.85rem"><span>${p.ok?'✅':'⭕'}</span><span style="color:${p.ok?'var(--white)':'var(--muted)'}">${i+1}. ${p.label}</span></div>`).join('')}`;
+    grid.insertBefore(card, grid.firstChild);
+  };
+
+  // ── GERAR ETIQUETA ────────────────────────────────────────
+  window.gerarEtiqueta = async () => {
+    const btn = document.getElementById('btn-gerar-etiqueta');
+    if (!btn || !window._pedidoAtualId) return;
+    btn.textContent = '⏳ Gerando...';
+    btn.disabled = true;
+    try {
+      const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/gerarEtiqueta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedidoId: window._pedidoAtualId, vendedorUid: window._auth?.currentUser?.uid })
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error || 'Erro ao gerar etiqueta');
+      if (data.url) { window.open(data.url, '_blank'); showToast('✅ Etiqueta gerada!'); }
+    } catch (err) {
+      showToast('Erro: ' + err.message, 'erro');
+    } finally {
+      btn.textContent = '🏷️ Gerar Etiqueta de Envio';
+      btn.disabled = false;
+    }
+  };
+</script>
+
+</body>
+</html>

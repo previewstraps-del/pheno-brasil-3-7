@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strain – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.strain-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; max-width: 1200px; margin: 0 auto; }
+@media (max-width: 768px) { .strain-hero { grid-template-columns: 1fr; } }
+
+/* GALERIA */
+.strain-img-wrap { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.strain-img-main { position: relative; flex: 1; }
+.strain-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 360px; transition: opacity 0.2s; }
+.strain-img-overlay { position: absolute; inset: 0; background: linear-gradient(to right, transparent 60%, var(--bg) 100%); pointer-events: none; }
+@media (max-width: 768px) { .strain-img-overlay { background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%); } }
+
+.strain-thumbnails { display: flex; gap: 0.5rem; padding: 0.7rem; background: var(--bg2); flex-wrap: wrap; }
+.thumb {
+  width: 56px; height: 56px; object-fit: cover; border-radius: 2px;
+  border: 2px solid var(--border); cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.thumb:hover { border-color: var(--gold); }
+.thumb.active { border-color: var(--gold); }
+
+.strain-hero-info { padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+.strain-type-badge { display: inline-block; background: var(--green); color: #fff; font-family: 'Barlow Condensed'; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; text-transform: uppercase; border-radius: 2px; margin-bottom: 1rem; width: fit-content; }
+.strain-name { font-family: 'Barlow Condensed'; font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; text-transform: uppercase; line-height: 0.95; margin-bottom: 0.5rem; }
+.strain-genetics { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.strain-genetics strong { color: var(--white); }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin-bottom: 2rem; }
+.stat-box { background: var(--bg3); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 2px; }
+.stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.stat-value { font-family: 'Barlow Condensed'; font-size: 1.15rem; font-weight: 700; color: var(--white); }
+.stat-value.gold { color: var(--gold); }
+.strain-price { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; color: var(--gold); margin-bottom: 1rem; }
+.cart-btn { background: var(--green); color: #fff; border: none; padding: 1rem 2rem; font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border-radius: 2px; transition: all 0.2s; width: 100%; max-width: 320px; }
+.cart-btn:hover { background: var(--green2); }
+.cart-btn.added { background: var(--gold); color: #000; }
+.cart-btn:disabled { background: var(--bg3); border: 1px solid var(--border); color: var(--muted); cursor: not-allowed; opacity: 1; }
+.estoque-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem; padding: 0.3rem 0.8rem; border-radius: 2px; width: fit-content; }
+.estoque-badge.ok    { background: rgba(58,125,68,0.15); color: var(--green2); border: 1px solid var(--green); }
+.estoque-badge.baixo { background: rgba(201,168,76,0.15); color: var(--gold);  border: 1px solid var(--gold); }
+.estoque-badge.vazio { background: rgba(224,82,82,0.15);  color: var(--red);   border: 1px solid var(--red); }
+.strain-body { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 3rem; }
+@media (max-width: 768px) { .strain-body { grid-template-columns: 1fr; } }
+.section-title { font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.descricao-text { color: #ccc; line-height: 1.75; font-size: 0.95rem; }
+.tags-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.tag-pill { background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.82rem; font-weight: 500; }
+.sidebar-card { background: var(--bg2); border: 1px solid var(--border); padding: 1.5rem; border-radius: 4px; border-top: 3px solid var(--gold); margin-bottom: 1.5rem; height: fit-content; }
+.breeder-info-card { display: flex; align-items: center; gap: 1rem; }
+.breeder-avatar-sm { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); background: var(--bg3); flex-shrink: 0; }
+.breeder-name { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; }
+.breeder-label { font-size: 0.75rem; color: var(--muted); }
+.prod-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.prod-row:last-child { border-bottom: none; }
+.prod-row-label { color: var(--muted); }
+.prod-row-value { font-weight: 600; font-family: 'Barlow Condensed'; font-size: 1rem; }
+#loading-state, #error-state { max-width: 600px; margin: 6rem auto; text-align: center; padding: 2rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div id="loading-state"><p>Carregando strain...</p></div>
+<div id="error-state" style="display:none"><p style="color:var(--red)">Strain não encontrada.</p></div>
+
+<div id="strain-content" style="display:none">
+  <div class="strain-hero">
+    <div class="strain-img-wrap">
+      <div class="strain-img-main">
+        <img id="s-img" src="" alt="">
+        <div class="strain-img-overlay"></div>
+      </div>
+      <!-- Miniaturas — só aparecem se tiver mais de 1 foto -->
+      <div class="strain-thumbnails" id="s-thumbnails" style="display:none"></div>
+    </div>
+    <div class="strain-hero-info">
+      <span class="strain-type-badge" id="s-type"></span>
+      <h1 class="strain-name" id="s-name"></h1>
+      <div class="strain-genetics" id="s-genetics"></div>
+      <div class="stat-grid" id="s-stats"></div>
+      <div class="strain-price" id="s-price"></div>
+      <div id="s-estoque-badge"></div>
+      <button class="cart-btn" id="btn-cart" onclick="window.adicionarCarrinho()">+ Adicionar ao Carrinho</button>
+    </div>
+  </div>
+
+  <div class="strain-body">
+    <div>
+      <div id="s-desc-section" style="margin-bottom:2.5rem;display:none">
+        <div class="section-title">Descrição</div>
+        <p class="descricao-text" id="s-desc"></p>
+      </div>
+      <div id="s-efeitos-section" style="margin-bottom:2.5rem;display:none">
+        <div class="section-title">Efeitos</div>
+        <div class="tags-wrap" id="s-efeitos"></div>
+      </div>
+      <div id="s-aromas-section" style="display:none">
+        <div class="section-title">Aromas & Sabores</div>
+        <div class="tags-wrap" id="s-aromas"></div>
+      </div>
+    </div>
+    <div>
+      <div class="sidebar-card" id="s-breeder-card">
+        <div class="section-title">Breeder</div>
+        <div class="breeder-info-card">
+          <img class="breeder-avatar-sm" id="s-breeder-foto" src="" alt="">
+          <div>
+            <div class="breeder-name" id="s-breeder-nome"></div>
+            <div class="breeder-label">Breeder Verificado</div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-card" id="s-prod-card" style="display:none">
+        <div class="section-title">Produção Estimada</div>
+        <div id="s-producao"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Adicionado o 'db' diretamente no import estático do topo
+  import { renderNav, initCarrinho, initAuth, db } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { getStrain } from './data.js';
+
+  renderNav('Sementes');
+  initCarrinho();
+  initAuth();
+  renderFooter();
+
+  const strainId = new URLSearchParams(window.location.search).get('id');
+  let produtoAtual = null;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+  // ── GALERIA ───────────────────────────────────────────────
+  const trocarFoto = (url, thumbAtiva) => {
+    const img = document.getElementById('s-img');
+    img.style.opacity = '0';
+    setTimeout(() => { img.src = url; img.style.opacity = '1'; }, 150);
+    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+    if (thumbAtiva) thumbAtiva.classList.add('active');
+  };
+
+  const renderGaleria = (fotos) => {
+    const thumbsWrap = document.getElementById('s-thumbnails');
+    if (!fotos || fotos.length <= 1) return; // só mostra se tiver mais de 1
+
+    thumbsWrap.style.display = 'flex';
+    fotos.forEach((url, i) => {
+      const img = document.createElement('img');
+      img.src       = url;
+      img.className = 'thumb' + (i === 0 ? ' active' : '');
+      img.onclick   = () => trocarFoto(url, img);
+      img.onerror   = () => img.style.display = 'none';
+      thumbsWrap.appendChild(img);
+    });
+  };
+
+  // ── CARREGAR STRAIN ───────────────────────────────────────
+  const carregarStrain = async () => {
+    if (!strainId) { showError(); return; }
+    try {
+      const p = await getStrain(strainId);
+      if (!p) { showError(); return; }
+
+      produtoAtual = p;
+      document.title = `${p.name} – PhenoBrasil`;
+
+      // Fotos — usa images[] se existir, senão cai no image
+      const fotos = (p.images && p.images.length) ? p.images : (p.image ? [p.image] : []);
+      const imgEl = document.getElementById('s-img');
+      imgEl.src = fotos[0] || 'https://via.placeholder.com/600x520';
+      imgEl.alt = p.name;
+      renderGaleria(fotos);
+
+      set('s-type', p.type || '');
+      set('s-name', p.name || '');
+      set('s-price', p.price ? 'R$ ' + p.price.toFixed(2).replace('.', ',') : '');
+
+      const genEl = document.getElementById('s-genetics');
+      if (p.pai || p.mae) {
+        genEl.innerHTML = `<strong>♂ ${p.pai || '?'}</strong> <span style="color:var(--gold)">×</span> <strong>♀ ${p.mae || '?'}</strong>`;
+      } else { genEl.style.display = 'none'; }
+
+      const stats = [
+        { label: 'Floração',      value: p.flow },
+        { label: 'THC',           value: p.thc, gold: true },
+        { label: 'CBD',           value: p.cbd },
+        { label: 'Fotoperiodismo', value: p.fotoperiodismo },
+      ].filter(s => s.value);
+      document.getElementById('s-stats').innerHTML = stats.map(s => `
+        <div class="stat-box">
+          <div class="stat-label">${s.label}</div>
+          <div class="stat-value${s.gold ? ' gold' : ''}">${s.value}</div>
+        </div>`).join('');
+
+      if (p.descricao) { set('s-desc', p.descricao); document.getElementById('s-desc-section').style.display = 'block'; }
+      if (p.efeitos?.length) { document.getElementById('s-efeitos').innerHTML = p.efeitos.map(e => `<span class="tag-pill">✨ ${e}</span>`).join(''); document.getElementById('s-efeitos-section').style.display = 'block'; }
+      if (p.aromas?.length)  { document.getElementById('s-aromas').innerHTML  = p.aromas.map(a => `<span class="tag-pill">🍋 ${a}</span>`).join(''); document.getElementById('s-aromas-section').style.display = 'block'; }
+
+      if (p.indoor || p.outdoor) {
+        const rows = [];
+        if (p.indoor)  rows.push(`<div class="prod-row"><span class="prod-row-label">🏠 Indoor</span><span class="prod-row-value">${p.indoor}</span></div>`);
+        if (p.outdoor) rows.push(`<div class="prod-row"><span class="prod-row-label">🌿 Outdoor</span><span class="prod-row-value">${p.outdoor}</span></div>`);
+        document.getElementById('s-producao').innerHTML = rows.join('');
+        document.getElementById('s-prod-card').style.display = 'block';
+      }
+
+      if (p.breederUid) {
+        try {
+          // O import dinâmico do 'nav.js' foi removido daqui porque o 'db' já vem lá de cima de forma limpa.
+          const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+          const u = (await getDoc(doc(db, "users", p.breederUid))).data();
+          set('s-breeder-nome', u?.name || p.breederEmail || 'Breeder');
+          document.getElementById('s-breeder-foto').src = u?.photo ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(u?.name || 'B')}&background=3a7d44&color=fff`;
+        } catch (_) { set('s-breeder-nome', p.breederEmail || 'Breeder'); }
+      }
+
+      // Estoque
+      const btn        = document.getElementById('btn-cart');
+      const badgeEl    = document.getElementById('s-estoque-badge');
+      const estoque    = p.estoque !== undefined ? p.estoque : null;
+      const esgotado   = p.status === 'esgotado' || estoque === 0;
+      const inativo    = p.status === 'inativo';
+
+      if (inativo) {
+        btn.textContent = 'Indisponível';
+        btn.disabled = true;
+        badgeEl.innerHTML = `<span class="estoque-badge vazio">⛔ Indisponível</span>`;
+      } else if (esgotado) {
+        btn.textContent = 'Esgotado';
+        btn.disabled = true;
+        badgeEl.innerHTML = `<span class="estoque-badge vazio">❌ Esgotado</span>`;
+      } else if (estoque !== null) {
+        if (estoque <= 3) {
+          badgeEl.innerHTML = `<span class="estoque-badge baixo">⚠️ Últimas ${estoque} unidades</span>`;
+        } else {
+          badgeEl.innerHTML = `<span class="estoque-badge ok">✅ ${estoque} unidades disponíveis</span>`;
+        }
+      }
+
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('strain-content').style.display = 'block';
+    } catch (err) { console.error(err); showError(); }
+  };
+
+  const showError = () => {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('error-state').style.display   = 'block';
+  };
+
+  window.adicionarCarrinho = () => {
+    if (!produtoAtual) return;
+    window.adicionarAoCarrinho(produtoAtual.id, produtoAtual.name, produtoAtual.type, produtoAtual.price, produtoAtual.image);
+    const btn = document.getElementById('btn-cart');
+    btn.textContent = '✓ No Carrinho'; btn.classList.add('added');
+    setTimeout(() => { btn.textContent = '+ Adicionar ao Carrinho'; btn.classList.remove('added'); }, 1800);
+  };
+
+  carregarStrain();
+</script>
+</body>
+</html>

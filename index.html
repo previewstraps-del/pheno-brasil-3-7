@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhenoBrasil – Seed Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+  
+/* CARROSSEL DE PUBLICIDADE */
+.pub-carrossel { position: relative; width: 100%; overflow: hidden; background: #0d0d0d; border-bottom: 1px solid var(--border); user-select: none; }
+.pub-carrossel-inner { display: flex; transition: transform 0.5s ease; }
+.pub-slide { min-width: 100%; position: relative; display: block; text-decoration: none; }
+.pub-slide img { width: 100%; max-height: 480px; object-fit: cover; display: block; }
+.pub-slide-vazio { width: 100%; height: 320px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d0d0d 0%, #1a2a1a 50%, #0d0d0d 100%); }
+.pub-slide-vazio h1 { font-family: 'Barlow Condensed'; font-size: clamp(3rem, 8vw, 6rem); font-weight: 800; text-transform: uppercase; line-height: 0.95; color: #fff; }
+.pub-slide-vazio h1 span { color: var(--gold); }
+.pub-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); border: 1px solid var(--border); color: #fff; font-size: 1.5rem; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 2px; transition: all 0.2s; z-index: 10; }
+.pub-nav:hover { background: rgba(201,168,76,0.8); border-color: var(--gold); }
+.pub-nav-prev { left: 1rem; }
+.pub-nav-next { right: 1rem; }
+.pub-dots { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; z-index: 10; }
+.pub-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s; border: none; padding: 0; }
+.pub-dot.active { background: var(--gold); transform: scale(1.2); }
+ 
+.breeder-tag { position: absolute; top: 10px; left: 10px; background: var(--green); color: #fff; font-family: 'Barlow Condensed'; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; text-transform: uppercase; border-radius: 2px; }
+ 
+.breeders-section { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 0; display: none; }
+.breeders-section.visible { display: block; }
+.breeders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; margin-top: 1.5rem; }
+.breeder-card-pub { background: var(--bg2); border: 1px solid var(--border); padding: 1.5rem 1rem; border-radius: 4px; text-align: center; transition: all 0.2s; text-decoration: none; color: var(--white); display: block; }
+.breeder-card-pub:hover { border-color: var(--gold); transform: translateY(-2px); }
+.breeder-card-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); margin: 0 auto 0.8rem; display: block; background: var(--bg3); }
+.breeder-card-pub:hover .breeder-card-avatar { border-color: var(--gold); }
+.breeder-card-name { font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; }
+.breeder-card-count { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+ 
+/* MODAL VARIANTES */
+.modal-variantes-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 600; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-variantes-overlay.open { display: flex; }
+.modal-variantes { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 420px; padding: 2rem; border-radius: 4px; position: relative; }
+.modal-variantes h3 { font-family: 'Barlow Condensed'; font-size: 1.4rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.3rem; }
+.modal-variantes .mv-preco { font-family: 'Barlow Condensed'; font-size: 1.2rem; color: var(--gold); font-weight: 700; margin-bottom: 1.5rem; }
+.modal-variantes .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+.mv-grupo { margin-bottom: 1.2rem; }
+.mv-label { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+.mv-opcoes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mv-opcao { background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.4rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.mv-opcao:hover { border-color: var(--gold); color: var(--gold); }
+.mv-opcao.selected { background: var(--gold); border-color: var(--gold); color: #000; }
+.mv-confirmar { width: 100%; background: var(--green); color: #fff; border: none; padding: 0.9rem; font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; margin-top: 1rem; transition: background 0.2s; }
+.mv-confirmar:hover { background: var(--green2); }
+</style>
+</head>
+<body>
+ 
+<!-- CARROSSEL DE PUBLICIDADE -->
+<div class="pub-carrossel" id="pub-carrossel">
+  <div class="pub-carrossel-inner" id="pub-inner">
+    <!-- slides injetados via JS -->
+    <div class="pub-slide pub-slide-vazio">
+      <h1>BREEDERS <span>NACIONAIS</span></h1>
+    </div>
+  </div>
+  <button class="pub-nav pub-nav-prev" id="pub-prev" style="display:none" onclick="pubAnterior()">&#8249;</button>
+  <button class="pub-nav pub-nav-next" id="pub-next" style="display:none" onclick="pubProximo()">&#8250;</button>
+  <div class="pub-dots" id="pub-dots"></div>
+</div>
+ 
+<!-- SEÇÃO BREEDERS (dropdown) -->
+<div class="breeders-section" id="breeders-section">
+  <div class="section-head">
+    <h2>Nossos <span>Breeders</span></h2>
+    <button onclick="window.fecharBreeders()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;font-family:'Barlow Condensed';text-transform:uppercase;">✕ Fechar</button>
+  </div>
+  <div class="breeders-grid" id="breeders-grid"></div>
+</div>
+ 
+<!-- GENÉTICAS -->
+<div class="main-wrap">
+  <div class="section-head">
+    <h2>Nossas <span>Genéticas</span></h2>
+    <a href="sementes.html" style="font-family:'Barlow Condensed';font-size:0.85rem;font-weight:700;text-transform:uppercase;color:var(--gold);text-decoration:none;letter-spacing:0.05em;">Ver tudo →</a>
+
+  </div>
+  <div class="product-grid" id="vitrine-produtos">
+    <p class="state-msg">Carregando catálogo...</p>
+  </div>
+</div>
+ 
+<!-- LOJA -->
+<div class="main-wrap">
+  <div class="section-head">
+    <h2>Nossa <span>Loja</span></h2>
+    <a href="loja.html" style="font-family:'Barlow Condensed';font-size:0.85rem;font-weight:700;text-transform:uppercase;color:var(--gold);text-decoration:none;letter-spacing:0.05em;">Ver tudo →</a>
+  </div>
+  <div class="product-grid" id="vitrine-loja">
+    <p class="state-msg">Carregando loja...</p>
+  </div>
+</div>
+ 
+<!-- MODAL VARIANTES LOJA -->
+<div class="modal-variantes-overlay" id="modal-variantes">
+  <div class="modal-variantes">
+    <button class="modal-close" onclick="fecharModalVariantes()">&times;</button>
+    <h3 id="mv-nome"></h3>
+    <div class="mv-preco" id="mv-preco"></div>
+    <div id="mv-grupos"></div>
+    <button class="mv-confirmar" onclick="confirmarVariantes()">+ Adicionar ao Carrinho</button>
+  </div>
+</div>
+ 
+<script type="module">
+  import { renderNav, initCarrinho, initAuth, db, auth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { getStrains, getBreeders, getProdutosLoja } from './data.js';
+  import { collection, getDocs, query, orderBy, getDoc, doc, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // ═══════════════════════════════════════════════════════════
+  // CARROSSEL DE PUBLICIDADE
+  // ═══════════════════════════════════════════════════════════
+  let pubSlides    = [];
+  let pubAtual     = 0;
+  let pubTimer     = null;
+
+  const pubIr = (idx) => {
+    if (!pubSlides.length) return;
+    pubAtual = (idx + pubSlides.length) % pubSlides.length;
+    document.getElementById('pub-inner').style.transform = `translateX(-${pubAtual * 100}%)`;
+    document.querySelectorAll('.pub-dot').forEach((d, i) => d.classList.toggle('active', i === pubAtual));
+  };
+
+  window.pubAnterior = () => { pubIr(pubAtual - 1); reiniciarTimer(); };
+  window.pubProximo  = () => { pubIr(pubAtual + 1); reiniciarTimer(); };
+
+  const reiniciarTimer = () => {
+    if (pubTimer) clearInterval(pubTimer);
+    if (pubSlides.length > 1) pubTimer = setInterval(() => pubIr(pubAtual + 1), 5000);
+  };
+
+  const carregarPublicidades = async () => {
+    try {
+      const agora = new Date();
+      const snap  = await getDocs(collection(db, 'publicidades'));
+      const ativas = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => {
+          if (!p.ativo) return false;
+          if (p.validade) {
+            const val = p.validade?.toDate ? p.validade.toDate() : new Date(p.validade);
+            if (val < agora) return false;
+          }
+          return true;
+        });
+
+      if (!ativas.length) return; // mantém slide padrão
+
+      const inner   = document.getElementById('pub-inner');
+      const dotsWrap = document.getElementById('pub-dots');
+      const btnPrev  = document.getElementById('pub-prev');
+      const btnNext  = document.getElementById('pub-next');
+
+      inner.innerHTML   = '';
+      dotsWrap.innerHTML = '';
+      pubSlides = ativas;
+
+      ativas.forEach((p, i) => {
+        const slide = document.createElement(p.link ? 'a' : 'div');
+        slide.className = 'pub-slide';
+        if (p.link) { slide.href = p.link; slide.target = '_blank'; slide.rel = 'noopener'; }
+        slide.innerHTML = `<img src="${p.foto}" alt="${p.nome || 'Publicidade'}" onerror="this.parentElement.style.display='none'">`;
+        inner.appendChild(slide);
+
+        const dot = document.createElement('button');
+        dot.className = 'pub-dot' + (i === 0 ? ' active' : '');
+        dot.onclick = () => { pubIr(i); reiniciarTimer(); };
+        dotsWrap.appendChild(dot);
+      });
+
+      if (ativas.length > 1) {
+        btnPrev.style.display = 'flex';
+        btnNext.style.display = 'flex';
+        reiniciarTimer();
+      }
+
+      pubIr(0);
+    } catch (err) {
+      console.error('carregarPublicidades:', err);
+    }
+  };
+
+  carregarPublicidades();
+ 
+  // ═══════════════════════════════════════════════════════════
+  // INICIALIZAR COMPONENTES
+  // nav.js cuida de: botões de auth, logout, carrinho badge
+  // ═══════════════════════════════════════════════════════════
+  renderNav('Inicio');
+  initCarrinho();
+  renderFooter();
+  initAuth(); // ← cuida de tudo relacionado a nav/auth
+ 
+  // ═══════════════════════════════════════════════════════════
+  // LÓGICA ESPECIAL DO INDEX
+  // Segundo listener só para lógica exclusiva desta página
+  // (ex: mostrarBreeders, colecionáveis por role, etc.)
+  // ═══════════════════════════════════════════════════════════
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+ 
+    let role = null;
+ 
+    // Mesma ordem de busca que o nav.js
+    try {
+      const snapUsuario = await getDoc(doc(db, 'usuarios', user.uid));
+      if (snapUsuario.exists()) role = snapUsuario.data()?.role || 'usuario';
+    } catch (_) {}
+ 
+    if (!role) {
+      try {
+        const snapUsers = await getDoc(doc(db, 'users', user.uid));
+        if (snapUsers.exists()) role = snapUsers.data()?.role || null;
+      } catch (_) {}
+    }
+ 
+    if (!role) role = user.email === 'admin@phenobrasil.com' ? 'admin' : 'usuario';
+ 
+    // Lógica especial por role — adicione aqui o que precisar
+    // Exemplo: mostrar seção de colecionáveis para admin/breeder
+    // if (role === 'admin' || role === 'breeder') {
+    //   document.getElementById('secao-colecionaveis')?.style.display = 'block';
+    // }
+  });
+ 
+  // ═══════════════════════════════════════════════════════════
+  // VITRINE (GENÉTICAS)
+  // ═══════════════════════════════════════════════════════════
+  const carregarVitrine = async () => {
+    const grid = document.getElementById('vitrine-produtos');
+    try {
+      const usersSnap = await getDocs(collection(db, "users"));
+      const mapaBreeders = {};
+      usersSnap.forEach(d => {
+        const u = d.data();
+        if (u.email) mapaBreeders[u.email.toLowerCase()] = u.name;
+        mapaBreeders[d.id] = u.name;
+      });
+ 
+      const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+      grid.innerHTML = '';
+      if (snap.empty) { grid.innerHTML = '<p class="state-msg">Nenhuma genética em exposição.</p>'; return; }
+ 
+      snap.docs.slice(0, 16).forEach(docSnap => {
+        const p           = docSnap.data();
+        const breederNome = mapaBreeders[p.breederUid] || mapaBreeders[(p.breederEmail||'').toLowerCase()] || 'PhenoBrasil';
+        const precoNum    = p.price || 0;
+        const imgSafe     = (p.image || '').replace(/'/g, '');
+        const nameSafe    = (p.name  || '').replace(/'/g, '&#39;');
+        const typeSafe    = (p.type  || '').replace(/'/g, '&#39;');
+ 
+        const esgotado  = p.status === 'esgotado' || p.status === 'inativo' || p.estoque === 0;
+        const baixo     = !esgotado && p.estoque !== undefined && p.estoque <= 3;
+ 
+        const btnCarrinho = esgotado
+          ? `<button class="btn-cart" disabled style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);cursor:not-allowed;">Esgotado</button>`
+          : `<button class="btn-cart" data-product-id="${docSnap.id}" onclick="window.adicionarAoCarrinho('${docSnap.id}','${nameSafe}','${typeSafe}',${precoNum},'${imgSafe}')">+ Carrinho</button>`;
+ 
+        const estoqueTag = esgotado
+          ? `<div style="font-size:0.72rem;color:var(--red);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">❌ Esgotado</div>`
+          : baixo
+          ? `<div style="font-size:0.72rem;color:var(--gold);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">⚠️ Últimas ${p.estoque}</div>`
+          : '';
+ 
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <div style="position:relative">
+            <td>
+        <img class="product-img" src="${p.image || ''}" alt="${p.name}" 
+       onerror="this.onerror=null; this.src='https://placehold.co/50x50/1c1c1c/c9a84c?text=SEM FOTO';">
+          </td>
+            <span class="breeder-tag">${breederNome}</span>
+          </div>
+          <div class="product-body">
+            <div class="product-type">${p.type || ''} • ${p.flow || ''}</div>
+            <div class="product-name">${p.name}</div>
+            ${estoqueTag}
+            <div class="product-footer">
+              <span class="product-price">R$ ${precoNum.toFixed(2).replace('.', ',')}</span>
+              <div style="display:flex;gap:0.4rem">
+                ${btnCarrinho}
+                <a href="strain.html?id=${docSnap.id}" class="btn-view">Ver</a>
+              </div>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = '<p class="state-err">Erro ao carregar catálogo.</p>';
+    }
+  };
+ 
+  // ═══════════════════════════════════════════════════════════
+  // LOJA
+  // ═══════════════════════════════════════════════════════════
+  const carregarLoja = async () => {
+    const grid = document.getElementById('vitrine-loja');
+    try {
+      const produtos = await getProdutosLoja();
+      grid.innerHTML = '';
+      if (!produtos.length) { grid.innerHTML = '<p class="state-msg">Nenhum produto na loja.</p>'; return; }
+ 
+      // Oculta inativos; limita a 4
+      const visiveis = produtos.filter(p => p.status !== 'inativo').slice(0, 4);
+      produtosLojaMemoria = produtos.filter(p => p.status !== 'inativo');
+      if (!visiveis.length) { grid.innerHTML = '<p class="state-msg">Nenhum produto na loja.</p>'; return; }
+ 
+      visiveis.forEach(p => {
+        const precoNum = p.price || 0;
+        const imgSafe  = (p.image || '').replace(/'/g, '');
+        const nameSafe = (p.name  || '').replace(/'/g, '&#39;');
+        const catSafe  = (p.categoria || '').replace(/'/g, '&#39;');
+        const esgotado = p.status === 'esgotado' || p.estoque === 0;
+        const baixo    = !esgotado && p.estoque !== undefined && p.estoque <= 3;
+ 
+        const btnCarrinho = esgotado
+          ? `<button class="btn-cart" disabled style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);cursor:not-allowed;">Esgotado</button>`
+          : `<button class="btn-cart" data-product-id="${p.id}"
+              onclick="window.abrirOuAdicionarLoja('${p.id}')">
+              + Carrinho
+             </button>`;
+ 
+        const estoqueTag = esgotado
+          ? `<div style="font-size:0.72rem;color:var(--red);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">❌ Esgotado</div>`
+          : baixo
+          ? `<div style="font-size:0.72rem;color:var(--gold);font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;margin-bottom:0.3rem">⚠️ Últimas ${p.estoque}</div>`
+          : '';
+ 
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          ${p.image ? `<img class="product-img" src="${p.image}" alt="${p.name}" onerror="this.style.display='none'">` : '<div class="product-img"></div>'}
+          <div class="product-body">
+            <div class="product-type">${p.categoria || ''}</div>
+            <div class="product-name">${p.name}</div>
+            ${estoqueTag}
+            <div class="product-footer">
+              <span class="product-price">R$ ${precoNum.toFixed(2).replace('.', ',')}</span>
+              <div style="display:flex;gap:0.4rem">
+                ${btnCarrinho}
+                <a href="produto.html?id=${p.id}" class="btn-view">Ver</a>
+              </div>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = '<p class="state-err">Erro ao carregar loja.</p>';
+    }
+  };
+ 
+  // ═══════════════════════════════════════════════════════════
+  // BREEDERS (dropdown nav)
+  // ═══════════════════════════════════════════════════════════
+  window.mostrarBreeders = async (e) => {
+    if (e) e.preventDefault();
+    const section = document.getElementById('breeders-section');
+    const grid    = document.getElementById('breeders-grid');
+    section.classList.add('visible');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    grid.innerHTML = '<p class="state-msg">Carregando...</p>';
+    try {
+      const breeders = await getBreeders();
+      const top5 = [...breeders].sort((a,b) => b.totalStrains - a.totalStrains).slice(0, 5);
+      grid.innerHTML = '';
+      top5.forEach(b => {
+        const card = document.createElement('a');
+        card.className = 'breeder-card-pub';
+        card.href = `breeder-strains.html?id=${b.id}`;
+        card.innerHTML = `
+          <img src="${b.avatar}" class="breeder-card-avatar" alt="${b.name || 'Breeder'}">
+          <div class="breeder-card-name">${b.name || 'Breeder'}</div>
+          <div class="breeder-card-count">${b.totalStrains} strain${b.totalStrains !== 1 ? 's' : ''}</div>`;
+        grid.appendChild(card);
+      });
+      if (breeders.length > 0) {
+        const btnTodos = document.createElement('a');
+        btnTodos.textContent = 'Ver Todos';
+        btnTodos.href = 'breeders.html';
+        btnTodos.className = 'breeder-card-pub';
+        btnTodos.style.cssText = 'display:flex;align-items:center;justify-content:center;font-family:"Barlow Condensed",sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;color:var(--gold);border-color:var(--gold);';
+        grid.appendChild(btnTodos);
+      }
+    } catch (err) { grid.innerHTML = '<p class="state-err">Erro ao carregar breeders.</p>'; }
+  };
+ 
+  window.fecharBreeders = () => document.getElementById('breeders-section').classList.remove('visible');
+ 
+  // ═══════════════════════════════════════════════════════════
+  // CARREGAR CONTEÚDO
+  // ═══════════════════════════════════════════════════════════
+  // ── MODAL VARIANTES ──────────────────────────────────────
+  let produtosLojaMemoria = [];
+  let produtoModalAtual   = null;
+  let selecionadasModal   = {};
+ 
+  window.abrirOuAdicionarLoja = (id) => {
+    const p = produtosLojaMemoria.find(p => p.id === id);
+    if (!p) return;
+    if (p.variantes && p.variantes.length) {
+      abrirModalVariantes(p);
+    } else {
+      window.adicionarAoCarrinho(p.id, p.name, p.categoria, p.price, p.image);
+    }
+  };
+ 
+  const abrirModalVariantes = (p) => {
+    produtoModalAtual = p;
+    selecionadasModal = {};
+    document.getElementById('mv-nome').textContent  = p.name;
+    document.getElementById('mv-preco').textContent = `R$ ${(p.price||0).toFixed(2).replace('.', ',')}`;
+    const gruposWrap = document.getElementById('mv-grupos');
+    gruposWrap.innerHTML = '';
+    p.variantes.forEach(grupo => {
+      if (!grupo.opcoes?.length) return;
+      selecionadasModal[grupo.nome] = grupo.opcoes[0];
+      const div = document.createElement('div');
+      div.className = 'mv-grupo';
+      div.innerHTML = `<span class="mv-label">${grupo.nome}</span><div class="mv-opcoes" id="mvi-${grupo.nome}"></div>`;
+      gruposWrap.appendChild(div);
+      const wrap = div.querySelector('.mv-opcoes');
+      grupo.opcoes.forEach((opcao, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'mv-opcao' + (i === 0 ? ' selected' : '');
+        btn.textContent = opcao;
+        btn.onclick = () => {
+          wrap.querySelectorAll('.mv-opcao').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selecionadasModal[grupo.nome] = opcao;
+        };
+        wrap.appendChild(btn);
+      });
+    });
+    document.getElementById('modal-variantes').classList.add('open');
+  };
+ 
+  window.fecharModalVariantes = () => {
+    document.getElementById('modal-variantes').classList.remove('open');
+    produtoModalAtual = null; selecionadasModal = {};
+  };
+ 
+  window.confirmarVariantes = () => {
+    if (!produtoModalAtual) return;
+    const varStr   = Object.entries(selecionadasModal).map(([k,v]) => `${k}: ${v}`).join(' | ');
+    const nomeFinal = varStr ? `${produtoModalAtual.name} (${varStr})` : produtoModalAtual.name;
+    window.adicionarAoCarrinho(produtoModalAtual.id, nomeFinal, produtoModalAtual.categoria, produtoModalAtual.price, produtoModalAtual.image);
+    window.fecharModalVariantes();
+  };
+ 
+  carregarVitrine();
+  carregarLoja();
+</script>
+</body>
+</html>

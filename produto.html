@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produto – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.prod-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 1100px; margin: 4rem auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 768px) { .prod-hero { grid-template-columns: 1fr; } }
+ 
+/* GALERIA */
+.prod-galeria { display: flex; flex-direction: column; gap: 0.6rem; }
+.prod-img-main { position: relative; }
+.prod-img { width: 100%; border-radius: 4px; border: 1px solid var(--border); object-fit: cover; max-height: 480px; display: block; transition: opacity 0.2s; }
+.prod-img-placeholder { width: 100%; height: 360px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 3rem; }
+.prod-thumbnails { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 2px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.thumb:hover { border-color: var(--gold); }
+.thumb.active { border-color: var(--gold); }
+ 
+.prod-categoria { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+.prod-name { font-family: 'Barlow Condensed'; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; text-transform: uppercase; line-height: 0.95; margin-bottom: 1rem; }
+.prod-price { font-family: 'Barlow Condensed'; font-size: 2.5rem; font-weight: 800; color: var(--gold); margin-bottom: 0.5rem; }
+.prod-desc { color: #ccc; line-height: 1.75; font-size: 0.95rem; margin-bottom: 2rem; }
+ 
+/* ESTOQUE */
+.estoque-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1.2rem; padding: 0.3rem 0.8rem; border-radius: 2px; width: fit-content; }
+.estoque-badge.ok    { background: rgba(58,125,68,0.15); color: var(--green2); border: 1px solid var(--green); }
+.estoque-badge.baixo { background: rgba(201,168,76,0.15); color: var(--gold);   border: 1px solid var(--gold); }
+.estoque-badge.vazio { background: rgba(224,82,82,0.15);  color: var(--red);    border: 1px solid var(--red); }
+ 
+/* VARIANTES */
+.variante-grupo { margin-bottom: 1.2rem; }
+.variante-label { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+.opcoes-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.opcao-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.4rem 1rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.opcao-btn:hover { border-color: var(--gold); color: var(--gold); }
+.opcao-btn.selected { background: var(--gold); border-color: var(--gold); color: #000; }
+ 
+.cart-btn { background: var(--green); color: #fff; border: none; padding: 1rem 2rem; font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; width: 100%; border-radius: 2px; transition: all 0.2s; margin-top: 1.5rem; }
+.cart-btn:hover { background: var(--green2); }
+.cart-btn.added { background: var(--gold); color: #000; }
+.cart-btn:disabled { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); cursor: not-allowed; }
+ 
+.vendedor-info { display: flex; align-items: center; gap: 0.8rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.vendedor-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--bg3); border: 1px solid var(--border); }
+.vendedor-nome { font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; }
+.vendedor-label { font-size: 0.72rem; color: var(--muted); }
+ 
+#loading-state, #error-state { max-width: 600px; margin: 6rem auto; text-align: center; padding: 2rem; color: var(--muted); }
+</style>
+</head>
+<body>
+ 
+<div id="loading-state"><p>Carregando produto...</p></div>
+<div id="error-state" style="display:none"><p style="color:var(--red)">Produto não encontrado.</p></div>
+ 
+<div id="prod-content" style="display:none">
+  <div class="prod-hero">
+    <!-- GALERIA -->
+    <div class="prod-galeria">
+      <div class="prod-img-main" id="img-main"></div>
+      <div class="prod-thumbnails" id="img-thumbs" style="display:none"></div>
+    </div>
+ 
+    <div>
+      <div class="prod-categoria" id="p-categoria"></div>
+      <h1 class="prod-name" id="p-name"></h1>
+      <div class="prod-price" id="p-price"></div>
+      <div id="p-estoque-badge"></div>
+      <div class="prod-desc" id="p-desc"></div>
+ 
+      <!-- VARIANTES -->
+      <div id="variantes-wrap"></div>
+ 
+      <button class="cart-btn" id="btn-cart" onclick="window.adicionarCarrinho()">+ Adicionar ao Carrinho</button>
+ 
+      <!-- VENDEDOR -->
+      <div class="vendedor-info" id="vendedor-info" style="display:none">
+        <img class="vendedor-avatar" id="v-avatar" src="" alt="">
+        <div>
+          <div class="vendedor-nome" id="v-nome"></div>
+          <div class="vendedor-label">Vendedor Verificado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<script type="module">
+  import { renderNav, initCarrinho, initAuth, db } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { getProduto } from './data.js';
+  import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+ 
+  renderNav('Loja');
+  initCarrinho();
+  initAuth();
+  renderFooter();
+ 
+  const prodId = new URLSearchParams(window.location.search).get('id');
+  let produtoAtual = null;
+  let selecionadas = {};
+ 
+  // ── GALERIA ───────────────────────────────────────────────
+  const renderGaleria = (fotos) => {
+    const mainWrap  = document.getElementById('img-main');
+    const thumbsWrap = document.getElementById('img-thumbs');
+ 
+    if (!fotos.length) {
+      mainWrap.innerHTML = `<div class="prod-img-placeholder">🛍️</div>`;
+      return;
+    }
+ 
+    mainWrap.innerHTML = `<img class="prod-img" id="img-principal" src="${fotos[0]}" alt="Produto" onerror="this.style.display='none'">`;
+ 
+    if (fotos.length > 1) {
+      thumbsWrap.style.display = 'flex';
+      fotos.forEach((url, i) => {
+        const img = document.createElement('img');
+        img.src       = url;
+        img.className = 'thumb' + (i === 0 ? ' active' : '');
+        img.onerror   = () => img.style.display = 'none';
+        img.onclick   = () => {
+          const principal = document.getElementById('img-principal');
+          principal.style.opacity = '0';
+          setTimeout(() => { principal.src = url; principal.style.opacity = '1'; }, 150);
+          thumbsWrap.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+          img.classList.add('active');
+        };
+        thumbsWrap.appendChild(img);
+      });
+    }
+  };
+ 
+  // ── CARREGAR PRODUTO ──────────────────────────────────────
+  const carregarProduto = async () => {
+    if (!prodId) { showError(); return; }
+    try {
+      const p = await getProduto(prodId);
+      if (!p) { showError(); return; }
+ 
+      produtoAtual = p;
+      document.title = `${p.name} – PhenoBrasil`;
+ 
+      // Galeria — usa images[] se existir, senão image
+      const fotos = (p.images && p.images.length) ? p.images : (p.image ? [p.image] : []);
+      renderGaleria(fotos);
+ 
+      // Dados básicos
+      document.getElementById('p-categoria').textContent = p.categoria || '';
+      document.getElementById('p-name').textContent      = p.name      || '';
+      document.getElementById('p-price').textContent     = p.price ? 'R$ ' + p.price.toFixed(2).replace('.', ',') : '';
+      document.getElementById('p-desc').textContent      = p.descricao || '';
+ 
+      // Estoque
+      const esgotado = p.status === 'esgotado' || p.status === 'inativo' || p.estoque === 0;
+      const baixo    = !esgotado && p.estoque !== undefined && p.estoque <= 3;
+      const badgeEl  = document.getElementById('p-estoque-badge');
+      const btnCart  = document.getElementById('btn-cart');
+ 
+      if (esgotado) {
+        badgeEl.innerHTML = `<span class="estoque-badge vazio">❌ Esgotado</span>`;
+        btnCart.textContent = 'Esgotado';
+        btnCart.disabled    = true;
+      } else if (baixo) {
+        badgeEl.innerHTML = `<span class="estoque-badge baixo">⚠️ Últimas ${p.estoque} unidades</span>`;
+      } else if (p.estoque !== undefined) {
+        badgeEl.innerHTML = `<span class="estoque-badge ok">✅ ${p.estoque} unidades disponíveis</span>`;
+      }
+ 
+      // Variantes
+      const wrap = document.getElementById('variantes-wrap');
+      if (p.variantes && p.variantes.length) {
+        p.variantes.forEach(grupo => {
+          if (!grupo.opcoes || !grupo.opcoes.length) return;
+          selecionadas[grupo.nome] = grupo.opcoes[0];
+ 
+          const div = document.createElement('div');
+          div.className = 'variante-grupo';
+          div.innerHTML = `<span class="variante-label">${grupo.nome}</span><div class="opcoes-wrap" id="opcoes-${grupo.nome}"></div>`;
+          wrap.appendChild(div);
+ 
+          const opcoesWrap = div.querySelector('.opcoes-wrap');
+          grupo.opcoes.forEach((opcao, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'opcao-btn' + (i === 0 ? ' selected' : '');
+            btn.textContent = opcao;
+            btn.onclick = () => {
+              opcoesWrap.querySelectorAll('.opcao-btn').forEach(b => b.classList.remove('selected'));
+              btn.classList.add('selected');
+              selecionadas[grupo.nome] = opcao;
+            };
+            opcoesWrap.appendChild(btn);
+          });
+        });
+      }
+ 
+      // Vendedor
+      if (p.vendedorUid) {
+        try {
+          const u = (await getDoc(doc(db, "users", p.vendedorUid))).data();
+          if (u) {
+            document.getElementById('v-nome').textContent = u.name || 'Vendedor';
+            document.getElementById('v-avatar').src       = u.photo ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name||'V')}&background=3a7d44&color=fff`;
+            document.getElementById('vendedor-info').style.display = 'flex';
+          }
+        } catch(_) {}
+      }
+ 
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('prod-content').style.display  = 'block';
+ 
+    } catch (err) { console.error(err); showError(); }
+  };
+ 
+  const showError = () => {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('error-state').style.display   = 'block';
+  };
+ 
+  window.adicionarCarrinho = () => {
+    if (!produtoAtual) return;
+    const esgotado = produtoAtual.status === 'esgotado' || produtoAtual.status === 'inativo' || produtoAtual.estoque === 0;
+    if (esgotado) return;
+ 
+    const variantesStr = Object.entries(selecionadas).map(([k,v]) => `${k}: ${v}`).join(' | ');
+    const nomeFinal    = variantesStr ? `${produtoAtual.name} (${variantesStr})` : produtoAtual.name;
+ 
+    window.adicionarAoCarrinho(produtoAtual.id, nomeFinal, produtoAtual.categoria, produtoAtual.price, produtoAtual.image);
+ 
+    const btn = document.getElementById('btn-cart');
+    btn.textContent = '✓ No Carrinho'; btn.classList.add('added');
+    setTimeout(() => { btn.textContent = '+ Adicionar ao Carrinho'; btn.classList.remove('added'); }, 1800);
+  };
+ 
+  carregarProduto();
+</script>
+</body>
+</html>
+ 

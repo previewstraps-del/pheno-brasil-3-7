@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout – PhenoBrasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="global.css">
+<style>
+.checkout-wrap { max-width: 1100px; margin: 3rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start; }
+@media (max-width: 900px) { .checkout-wrap { grid-template-columns: 1fr; } }
+
+/* FORM */
+.checkout-form-box { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 4px; padding: 2rem; }
+.checkout-section-title { font-family: 'Barlow Condensed'; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin: 1.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.checkout-section-title:first-child { margin-top: 0; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+.form-grid .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.form-group label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.form-group input { background: var(--bg3); border: 1px solid var(--border); color: var(--white); padding: 0.7rem 1rem; font-family: 'Barlow', sans-serif; font-size: 0.9rem; border-radius: 2px; outline: none; transition: border-color 0.2s; }
+.form-group input:focus { border-color: var(--gold); }
+.form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-group input.error { border-color: var(--red); }
+.field-error { font-size: 0.72rem; color: var(--red); display: none; }
+.field-error.visible { display: block; }
+
+/* FRETE POR VENDEDOR */
+.frete-vendedor-wrap { margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+.frete-vendedor-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.frete-vendedor-header { padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.frete-vendedor-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: var(--bg3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--gold); font-family: 'Barlow Condensed'; font-weight: 700; overflow: hidden; }
+.frete-vendedor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.frete-vendedor-nome { font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; text-transform: uppercase; }
+.frete-opcoes { padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.frete-opcao { display: flex; align-items: center; justify-content: space-between; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; padding: 0.7rem 1rem; cursor: pointer; transition: all 0.2s; gap: 1rem; }
+.frete-opcao:hover { border-color: var(--gold); }
+.frete-opcao.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.frete-opcao-left { display: flex; align-items: center; gap: 0.8rem; }
+.frete-opcao input[type="radio"] { accent-color: var(--gold); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+.frete-opcao-info { }
+.frete-opcao-nome { font-family: 'Barlow Condensed'; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; }
+.frete-opcao-prazo { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+.frete-opcao-preco { font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.frete-loading { padding: 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+.frete-combinar { padding: 0.8rem 1rem; color: var(--muted); font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+
+/* SIDEBAR */
+.checkout-sidebar { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 1rem; }
+.resumo-box { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 4px; padding: 1.5rem; }
+.resumo-box h3 { font-family: 'Barlow Condensed'; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; margin-bottom: 1rem; }
+.resumo-vendedor-bloco { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.resumo-vendedor-bloco:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.resumo-vendedor-label { font-family: 'Barlow Condensed'; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.resumo-item { display: flex; gap: 0.8rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.resumo-item:last-of-type { border-bottom: none; }
+.resumo-img { width: 40px; height: 40px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; background: var(--bg3); }
+.resumo-info { flex: 1; min-width: 0; }
+.resumo-info-name { font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resumo-info-qty { font-size: 0.72rem; color: var(--muted); }
+.resumo-info-price { font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.resumo-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+.resumo-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 0.4rem; }
+.resumo-row span:first-child { color: var(--muted); }
+.resumo-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 2px solid var(--border); }
+.resumo-total span:first-child { font-family: 'Barlow Condensed'; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.resumo-total span:last-child { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; color: var(--gold); }
+
+/* AVISO MÚLTIPLOS VENDEDORES */
+.aviso-multiplos { background: rgba(201,168,76,0.08); border: 1px solid var(--gold); border-radius: 4px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; display: none; }
+.aviso-multiplos.visible { display: block; }
+.aviso-multiplos-title { font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem; }
+.aviso-multiplos p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin-bottom: 0.2rem; }
+
+/* BOTÃO */
+.btn-confirmar { width: 100%; background: var(--green); color: #fff; border: none; padding: 1rem; font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border-radius: 2px; transition: background 0.2s; margin-top: 0.5rem; }
+.btn-confirmar:hover { background: var(--green2); }
+.btn-confirmar:disabled { background: var(--bg3); color: var(--muted); cursor: not-allowed; }
+.btn-voltar { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 0.7rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; text-align: center; text-decoration: none; display: block; margin-top: 0.5rem; }
+.btn-voltar:hover { border-color: var(--gold); color: var(--gold); }
+
+/* VAZIO */
+.checkout-vazio { max-width: 500px; margin: 8rem auto; text-align: center; padding: 2rem; color: var(--muted); }
+.checkout-vazio h2 { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; text-transform: uppercase; color: var(--white); margin-bottom: 0.5rem; }
+
+/* CEP */
+.cep-wrap { position: relative; }
+.cep-loading { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--muted); display: none; }
+.cep-loading.visible { display: block; }
+
+/* MODAL PAGAMENTO */
+.modal-pix-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 600; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(6px); }
+.modal-pix-overlay.open { display: flex; }
+.modal-pix { background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--gold); width: 100%; max-width: 480px; border-radius: 4px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto; }
+.modal-pix-step { font-family: 'Barlow Condensed'; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }
+.modal-pix h3 { font-family: 'Barlow Condensed'; font-size: 1.6rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.3rem; }
+.modal-pix-valor { font-family: 'Barlow Condensed'; font-size: 2.2rem; font-weight: 800; color: var(--gold); margin-bottom: 1.5rem; }
+.modal-pix-aviso { background: rgba(201,168,76,0.08); border: 1px solid var(--gold); border-radius: 4px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+.modal-pix-aviso strong { color: var(--gold); }
+.modal-pix-itens { margin-bottom: 1.5rem; }
+.modal-pix-item { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.modal-pix-item:last-child { border-bottom: none; }
+.modal-pix-item span:first-child { color: var(--muted); }
+.modal-pix-item span:last-child { font-weight: 600; }
+.modal-pix-frete { display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+.modal-pix-frete span:first-child { color: var(--muted); }
+.modal-pix-frete span:last-child { font-family: 'Barlow Condensed'; font-weight: 700; color: var(--white); }
+.btn-pix { width: 100%; background: var(--green); color: #fff; border: none; padding: 1rem; font-family: 'Barlow Condensed'; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: background 0.2s; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.btn-pix:hover { background: var(--green2); }
+.btn-pix-secundario { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 0.7rem; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+.btn-pix-secundario:hover { border-color: var(--white); color: var(--white); }
+.modal-pix-progress { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; }
+.progress-dot { height: 4px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+.progress-dot.done { background: var(--green2); }
+.progress-dot.active { background: var(--gold); }
+
+/* CONFIRMAÇÃO FINAL */
+.modal-pix-final { text-align: center; padding: 1rem 0; }
+.modal-pix-final .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+.modal-pix-final h3 { font-family: 'Barlow Condensed'; font-size: 2rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+.modal-pix-final p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem; }
+</style>
+</head>
+<body>
+
+<div id="checkout-vazio" style="display:none">
+  <div class="checkout-vazio">
+    <div style="font-size:4rem;margin-bottom:1rem">🛒</div>
+    <h2>Carrinho Vazio</h2>
+    <p>Adicione produtos antes de finalizar o pedido.</p>
+    <a href="index.html" style="display:inline-block;margin-top:1.5rem;background:var(--green);color:#fff;padding:0.8rem 2rem;font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;border-radius:2px;text-decoration:none;">Ver Produtos</a>
+  </div>
+</div>
+
+<div id="checkout-main" style="display:none">
+  <div class="hero hero-green" style="padding:2rem;">
+    <h1 style="font-size:clamp(1.8rem,4vw,3rem)">Finalizar <span>Pedido</span></h1>
+  </div>
+
+  <div class="checkout-wrap">
+
+    <!-- FORMULÁRIO -->
+    <div class="checkout-form-box">
+
+      <!-- AVISO MÚLTIPLOS VENDEDORES -->
+      <div class="aviso-multiplos" id="aviso-multiplos">
+        <div class="aviso-multiplos-title">⚠️ Você está comprando de vendedores diferentes</div>
+        <p>• Os pagamentos são <strong style="color:var(--white)">individuais e separados</strong> por vendedor.</p>
+        <p>• Se um pagamento não for realizado, apenas os pagos serão confirmados.</p>
+        <p>• O frete também é calculado individualmente por vendedor.</p>
+      </div>
+
+      <div class="checkout-section-title">Dados do Destinatário</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nome completo *</label>
+          <input type="text" id="dest-nome" placeholder="Nome completo de quem vai receber">
+          <span class="field-error" id="err-dest-nome">Campo obrigatório</span>
+        </div>
+        <div class="form-group">
+          <label>CPF *</label>
+          <input type="text" id="dest-cpf" placeholder="000.000.000-00" maxlength="14">
+          <span class="field-error" id="err-dest-cpf">CPF inválido</span>
+        </div>
+        <div class="form-group">
+          <label>Telefone / WhatsApp *</label>
+          <input type="tel" id="dest-telefone" placeholder="(00) 00000-0000" maxlength="15">
+          <span class="field-error" id="err-dest-telefone">Campo obrigatório</span>
+        </div>
+      </div>
+
+      <div class="checkout-section-title">Endereço de Entrega</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>CEP *</label>
+          <div class="cep-wrap">
+            <input type="text" id="dest-cep" placeholder="00000-000" maxlength="9">
+            <span class="cep-loading" id="cep-loading">Buscando...</span>
+          </div>
+          <span class="field-error" id="err-dest-cep">CEP inválido</span>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <input type="text" id="dest-estado" placeholder="UF" maxlength="2">
+        </div>
+        <div class="form-group full">
+          <label>Rua / Logradouro *</label>
+          <input type="text" id="dest-rua" placeholder="Rua, Avenida, etc.">
+          <span class="field-error" id="err-dest-rua">Campo obrigatório</span>
+        </div>
+        <div class="form-group">
+          <label>Número *</label>
+          <input type="text" id="dest-numero" placeholder="Nº">
+          <span class="field-error" id="err-dest-numero">Campo obrigatório</span>
+        </div>
+        <div class="form-group">
+          <label>Complemento</label>
+          <input type="text" id="dest-complemento" placeholder="Apto, Bloco, etc.">
+        </div>
+        <div class="form-group">
+          <label>Bairro *</label>
+          <input type="text" id="dest-bairro" placeholder="Bairro">
+          <span class="field-error" id="err-dest-bairro">Campo obrigatório</span>
+        </div>
+        <div class="form-group">
+          <label>Cidade *</label>
+          <input type="text" id="dest-cidade" placeholder="Cidade">
+          <span class="field-error" id="err-dest-cidade">Campo obrigatório</span>
+        </div>
+      </div>
+
+      <div class="checkout-section-title">Frete por Vendedor</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem">
+        Preencha o CEP acima para calcular o frete de cada vendedor.
+      </div>
+      <div class="frete-vendedor-wrap" id="frete-vendedor-wrap">
+        <!-- Gerado via JS -->
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="checkout-sidebar">
+      <div class="resumo-box">
+        <h3>Resumo</h3>
+        <div id="resumo-itens"></div>
+        <hr class="resumo-divider">
+        <div class="resumo-row"><span>Subtotal</span><span id="resumo-subtotal">R$ 0,00</span></div>
+        <div class="resumo-row"><span>Frete</span><span id="resumo-frete-total">A calcular</span></div>
+        <div class="resumo-total">
+          <span>Total</span>
+          <span id="resumo-total">R$ 0,00</span>
+        </div>
+      </div>
+
+      <button class="btn-confirmar" id="btn-confirmar" onclick="window.confirmarPedido()">
+        ✅ Confirmar Pedido
+      </button>
+      <a href="javascript:history.back()" class="btn-voltar">← Voltar</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO PIX -->
+<div class="modal-pix-overlay" id="modal-pix">
+  <div class="modal-pix" id="modal-pix-content">
+    <!-- Gerado via JS -->
+  </div>
+</div>
+
+<script type="module">
+  import { renderNav, initCarrinho, initAuth } from './nav.js';
+  import { renderFooter } from './footer.js';
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, serverTimestamp, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  renderNav();
+  initCarrinho();
+  initAuth();
+  renderFooter();
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJTlL-4piG67VOM_y480dhyib2qaF3Bso",
+    authDomain: "phenobrasil.firebaseapp.com",
+    projectId: "phenobrasil",
+    storageBucket: "phenobrasil.firebasestorage.app",
+    messagingSenderId: "825755980394",
+    appId: "1:825755980394:web:caad888821d128fb133013"
+  };
+
+  const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // ── MELHOR ENVIO CONFIG ───────────────────────────────────
+  // Trocar para produção quando tiver o token real:
+  // const ME_URL   = 'https://melhorenvio.com.br/api/v2';
+  // const ME_TOKEN = 'SEU_TOKEN_PRODUCAO';
+  const ME_URL   = 'https://sandbox.melhorenvio.com.br/api/v2';
+  const ME_TOKEN = 'SEU_TOKEN_SANDBOX';
+
+  // Pesos padrão por tipo de produto
+  const PESO_STRAIN  = 0.1;  // 100g
+  const PESO_PRODUTO = 1.0;  // 1kg
+
+  const CF_URL   = 'https://us-central1-phenobrasil.cloudfunctions.net';
+  const CART_KEY = 'pheno_cart';
+  let carrinho      = [];
+  let usuarioAtual  = null;
+  let gruposVendedor = []; // Array de { vendedorUid, vendedorNome, vendedorFoto, cepOrigem, infiniteTag, itens, freteOpcoes, freteSelecionado, checkoutUrl, orderNsu, pixStatus }
+  let pedidoBaseId  = null; // ID base para subpedidos (ex: ABC123)
+
+  const $ = id => document.getElementById(id);
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+
+  // ── CARREGAR CARRINHO ─────────────────────────────────────
+  const carregarCarrinho = async () => {
+    carrinho = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    if (!carrinho.length) {
+      $('checkout-vazio').style.display = 'block';
+      return;
+    }
+    $('checkout-main').style.display = 'block';
+    await montarGruposVendedor();
+    renderResumo();
+    renderFreteCards();
+  };
+
+  // ── MONTAR GRUPOS POR VENDEDOR ────────────────────────────
+  const montarGruposVendedor = async () => {
+    gruposVendedor = [];
+    const mapaVendedores = {};
+
+    for (const item of carrinho) {
+      // Busca produto para saber o dono e o peso
+      let snap = await getDoc(doc(db, 'products', item.id));
+      let colecao = 'products';
+      if (!snap.exists()) {
+        snap = await getDoc(doc(db, 'loja_produtos', item.id));
+        colecao = 'loja_produtos';
+      }
+      if (!snap.exists()) continue;
+
+      const prod = snap.data();
+      const ownerUid = prod.breederUid || prod.vendedorUid || 'sem-vendedor';
+
+      // Peso: usa cadastrado ou fallback por tipo
+      const peso = prod.peso || (colecao === 'products' ? PESO_STRAIN : PESO_PRODUTO);
+
+      if (!mapaVendedores[ownerUid]) {
+        // Busca dados do vendedor
+        let vendedorNome = prod.breederEmail || prod.vendedorEmail || 'Vendedor';
+        let vendedorFoto = '';
+        let infiniteTag = '';
+
+        try {
+          const uSnap = await getDoc(doc(db, 'users', ownerUid));
+          if (uSnap.exists()) {
+            const u = uSnap.data();
+            vendedorNome = u.name || u.nome || vendedorNome;
+            vendedorFoto = u.photo || '';
+            infiniteTag  = u.infiniteTag || '';
+          }
+        } catch (_) {}
+
+        mapaVendedores[ownerUid] = {
+          vendedorUid:  ownerUid,
+          vendedorNome,
+          vendedorFoto,
+          infiniteTag,
+          itens:          [],
+          freteOpcoes:    [],
+          freteSelecionado: null,
+          pixStatus:     'pendente',
+        };
+      }
+
+      mapaVendedores[ownerUid].itens.push({ ...item, peso, colecao });
+    }
+
+    gruposVendedor = Object.values(mapaVendedores);
+
+    // Aviso múltiplos vendedores
+    if (gruposVendedor.length > 1) {
+      $('aviso-multiplos').classList.add('visible');
+    }
+  };
+
+  // ── RENDER RESUMO SIDEBAR ─────────────────────────────────
+  const renderResumo = () => {
+    const wrap     = $('resumo-itens');
+    const subtotal = carrinho.reduce((s, i) => s + (i.price * i.qty), 0);
+    wrap.innerHTML = '';
+
+    gruposVendedor.forEach(grupo => {
+      const blocoDiv = document.createElement('div');
+      blocoDiv.className = 'resumo-vendedor-bloco';
+      blocoDiv.innerHTML = `<div class="resumo-vendedor-label">🏷️ ${grupo.vendedorNome}</div>`;
+
+      grupo.itens.forEach(i => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'resumo-item';
+        itemDiv.innerHTML = `
+          <img class="resumo-img" src="${i.image || ''}" alt="" onerror="this.style.display='none'">
+          <div class="resumo-info">
+            <div class="resumo-info-name">${i.name}</div>
+            <div class="resumo-info-qty">${i.qty}x · ${fmt(i.price)}</div>
+          </div>
+          <div class="resumo-info-price">${fmt(i.price * i.qty)}</div>`;
+        blocoDiv.appendChild(itemDiv);
+      });
+
+      wrap.appendChild(blocoDiv);
+    });
+
+    $('resumo-subtotal').textContent = fmt(subtotal);
+    atualizarTotalSidebar();
+  };
+
+  const atualizarTotalSidebar = () => {
+    const subtotal   = carrinho.reduce((s, i) => s + (i.price * i.qty), 0);
+    const totalFrete = gruposVendedor.reduce((s, g) => s + (g.freteSelecionado?.price || 0), 0);
+    const totalSeguro = gruposVendedor.reduce((s, g) => s + (g.seguroSelecionado ? (g.precoSeguro || 0) : 0), 0);
+    const freteTexto = gruposVendedor.every(g => g.freteSelecionado)
+      ? fmt(totalFrete)
+      : 'A calcular';
+
+    $('resumo-frete-total').textContent = freteTexto;
+    $('resumo-total').textContent = fmt(subtotal + totalFrete + totalSeguro);
+  };
+
+  // ── RENDER CARDS DE FRETE ─────────────────────────────────
+  const renderFreteCards = () => {
+    const wrap = $('frete-vendedor-wrap');
+    wrap.innerHTML = '';
+
+    gruposVendedor.forEach((grupo, idx) => {
+      const inicial = grupo.vendedorNome.charAt(0).toUpperCase();
+      const card = document.createElement('div');
+      card.className = 'frete-vendedor-card';
+      card.id = `frete-card-${idx}`;
+
+      const fotoHtml = grupo.vendedorFoto
+        ? `<img src="${grupo.vendedorFoto}" alt="">`
+        : inicial;
+
+      card.innerHTML = `
+        <div class="frete-vendedor-header">
+          <div class="frete-vendedor-avatar">${fotoHtml}</div>
+          <div class="frete-vendedor-nome">${grupo.vendedorNome}</div>
+        </div>
+        <div class="frete-opcoes" id="frete-opcoes-${idx}">
+          <div class="frete-loading">⏳ Preencha o CEP para calcular o frete</div>
+        </div>`;
+
+      wrap.appendChild(card);
+    });
+  };
+
+  // ── CALCULAR FRETE VIA MELHOR ENVIO ──────────────────────
+  const calcularFrete = async (cepDestino) => {
+    const cepLimpo = cepDestino.replace(/\D/g, '');
+    if (cepLimpo.length !== 8) return;
+
+    for (let idx = 0; idx < gruposVendedor.length; idx++) {
+      const grupo = gruposVendedor[idx];
+      if (!grupo.vendedorUid) continue;
+
+      const opcEl = $(`frete-opcoes-${idx}`);
+      opcEl.innerHTML = `<div class="frete-loading">⏳ Calculando frete...</div>`;
+
+      try {
+        // Peso total — strains sempre 100g fixo, produtos usam peso cadastrado
+        const temSoStrains = grupo.itens.every(i => i.colecao === 'products');
+        const pesoTotal = temSoStrains
+          ? 0.1  // 100g fixo para strains (CF calcula internamente)
+          : grupo.itens.reduce((s, i) => s + ((i.peso || 0) / 1000 * i.qty), 0);
+
+        // Chama Cloud Function para calcular frete (protege o token)
+        const resp = await fetch('https://us-central1-phenobrasil.cloudfunctions.net/calcularFrete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vendedorUid:   grupo.vendedorUid,
+            cepDestino:    cepLimpo,
+            estadoDestino: ($('dest-estado')?.value || '').trim().toUpperCase(),
+            itens:         grupo.itens.map(i => ({
+              id:          i.id,
+              colecao:     i.colecao,
+              qty:         i.qty,
+              peso:        i.peso        || 0,
+              largura:     i.largura     || 0,
+              altura:      i.altura      || 0,
+              comprimento: i.comprimento || 0,
+              price:       i.price       || 0,
+            })),
+          })
+        });
+
+        const data = await resp.json();
+
+        if (data.error || !data.opcoes?.length) {
+          opcEl.innerHTML = `<div class="frete-combinar">📦 Frete a combinar com o vendedor.</div>`;
+          continue;
+        }
+
+        grupo.freteOpcoes       = data.opcoes;
+        grupo.seguroOpcional    = data.seguroOpcional || false;
+        grupo.precoSeguro       = data.precoSeguroOpcional || 0;
+        grupo.seguroSelecionado = false;
+        // Seleciona primeira opção por padrão
+        grupo.freteSelecionado = data.opcoes[0];
+
+        // Renderizar opções de frete
+        let freteHtml = data.opcoes.map((op, oi) => `
+          <label class="frete-opcao ${oi === 0 ? 'selected' : ''}" onclick="selecionarFrete(${idx}, ${oi})">
+            <div class="frete-opcao-left">
+              <input type="radio" name="frete-${idx}" value="${oi}" ${oi === 0 ? 'checked' : ''}>
+              <div class="frete-opcao-info">
+                <div class="frete-opcao-nome">${op.name}</div>
+                <div class="frete-opcao-prazo">Prazo: ${op.delivery_time} dias úteis</div>
+              </div>
+            </div>
+            <div class="frete-opcao-preco">${fmt(op.price)}</div>
+          </label>`).join('');
+
+        // Seguro opcional (só aparece se não houver seguro automático)
+        if (data.seguroOpcional && data.precoSeguroOpcional > 0) {
+          freteHtml += `
+            <label class="frete-opcao seguro-opcao" onclick="toggleSeguro(${idx}, event)" style="border-color:var(--gold);margin-top:0.5rem;cursor:pointer">
+              <div class="frete-opcao-left">
+                <input type="checkbox" id="seguro-check-${idx}" style="accent-color:var(--gold)">
+                <div class="frete-opcao-info">
+                  <div class="frete-opcao-nome">🛡️ Seguro de Envio</div>
+                  <div class="frete-opcao-prazo">Protege seu pedido em caso de extravio ou dano</div>
+                </div>
+              </div>
+              <div class="frete-opcao-preco">+ ${fmt(data.precoSeguroOpcional)}</div>
+            </label>`;
+        }
+
+        opcEl.innerHTML = freteHtml;
+        atualizarTotalSidebar();
+
+      } catch (_) {
+        opcEl.innerHTML = `<div class="frete-combinar">📦 Frete a combinar com o vendedor.</div>`;
+      }
+    }
+  };
+
+  window.selecionarFrete = (grupoIdx, opcaoIdx) => {
+    const grupo = gruposVendedor[grupoIdx];
+    grupo.freteSelecionado = grupo.freteOpcoes[opcaoIdx];
+    const opcoes = document.querySelectorAll(`#frete-opcoes-${grupoIdx} .frete-opcao:not(.seguro-opcao)`);
+    opcoes.forEach((el, i) => el.classList.toggle('selected', i === opcaoIdx));
+    atualizarTotalSidebar();
+  };
+
+  window.toggleSeguro = (grupoIdx, e) => {
+    if (e) e.preventDefault();
+    const grupo    = gruposVendedor[grupoIdx];
+    if (!grupo) return;
+    grupo.seguroSelecionado = !grupo.seguroSelecionado;
+    const checkbox = document.getElementById('seguro-check-' + grupoIdx);
+    if (checkbox) checkbox.checked = grupo.seguroSelecionado;
+    const labelEl = document.querySelector('#frete-opcoes-' + grupoIdx + ' .seguro-opcao');
+    if (labelEl) labelEl.classList.toggle('selected', grupo.seguroSelecionado);
+    atualizarTotalSidebar();
+  };
+
+  // ── PRÉ-PREENCHER DADOS DO PERFIL ────────────────────────
+  const preencherDadosPerfil = async (uid) => {
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) return;
+      const d = snap.data();
+      const set = (id, val) => { if (val && $(id)) $(id).value = val; };
+      set('dest-nome',        d.name      || d.nome);
+      set('dest-cpf',         d.cpf);
+      set('dest-telefone',    d.phone     || d.telefone);
+      set('dest-cep',         d.cep);
+      set('dest-rua',         d.rua);
+      set('dest-numero',      d.numero);
+      set('dest-complemento', d.complemento);
+      set('dest-bairro',      d.bairro);
+      set('dest-cidade',      d.cidade);
+      set('dest-estado',      d.estado);
+    } catch(_) {}
+  };
+
+  // ── AUTH ──────────────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { location.href = 'index.html'; return; }
+    usuarioAtual = user;
+    await preencherDadosPerfil(user.uid);
+  });
+
+  // ── CEP AUTOMÁTICO ────────────────────────────────────────
+  $('dest-cep').addEventListener('input', async (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length > 5) val = val.slice(0,5) + '-' + val.slice(5,8);
+    e.target.value = val;
+
+    if (val.replace(/\D/g,'').length === 8) {
+      $('cep-loading').classList.add('visible');
+      try {
+        const res  = await fetch(`https://viacep.com.br/ws/${val.replace(/\D/g,'')}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          $('dest-rua').value    = data.logradouro || '';
+          $('dest-bairro').value = data.bairro     || '';
+          $('dest-cidade').value = data.localidade || '';
+          $('dest-estado').value = data.uf         || '';
+          $('dest-numero').focus();
+        }
+      } catch(_) {}
+      $('cep-loading').classList.remove('visible');
+
+      // Calcula frete após preencher CEP
+      await calcularFrete(val);
+    }
+  });
+
+  // ── MÁSCARAS ──────────────────────────────────────────────
+  $('dest-cpf').addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 9)      v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+    else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+    e.target.value = v;
+  });
+
+  $('dest-telefone').addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 10)     v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+    else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+    e.target.value = v;
+  });
+
+  // ── VALIDAÇÃO ─────────────────────────────────────────────
+  const obrigatorios = [
+    { id: 'dest-nome',     err: 'err-dest-nome' },
+    { id: 'dest-cpf',      err: 'err-dest-cpf' },
+    { id: 'dest-telefone', err: 'err-dest-telefone' },
+    { id: 'dest-cep',      err: 'err-dest-cep' },
+    { id: 'dest-rua',      err: 'err-dest-rua' },
+    { id: 'dest-numero',   err: 'err-dest-numero' },
+    { id: 'dest-bairro',   err: 'err-dest-bairro' },
+    { id: 'dest-cidade',   err: 'err-dest-cidade' },
+  ];
+
+  const validar = () => {
+    let ok = true;
+    obrigatorios.forEach(({ id, err }) => {
+      const el    = $(id);
+      const errEl = $(err);
+      const vazio = !el.value.trim();
+      el.classList.toggle('error', vazio);
+      errEl.classList.toggle('visible', vazio);
+      if (vazio) ok = false;
+    });
+    const cpf = $('dest-cpf').value.replace(/\D/g,'');
+    if (cpf.length !== 11) {
+      $('dest-cpf').classList.add('error');
+      $('err-dest-cpf').classList.add('visible');
+      ok = false;
+    }
+    return ok;
+  };
+
+  // ── GERAR ID BASE ─────────────────────────────────────────
+  const gerarIdBase = () => {
+    return Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,5).toUpperCase();
+  };
+
+  // ── CONFIRMAR PEDIDO ──────────────────────────────────────
+  window.confirmarPedido = async () => {
+    if (!validar()) return;
+    if (!usuarioAtual) { location.href = 'index.html'; return; }
+
+    const btn = $('btn-confirmar');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+
+    try {
+      // Valida estoque
+      const problemas = [];
+      for (const item of carrinho) {
+        let snap = await getDoc(doc(db, 'products', item.id));
+        if (!snap.exists()) snap = await getDoc(doc(db, 'loja_produtos', item.id));
+        if (!snap.exists()) { problemas.push(`"${item.name}" não existe mais.`); continue; }
+        const d = snap.data();
+        if (d.status === 'inativo')                              problemas.push(`"${item.name}" está indisponível.`);
+        else if (d.status === 'esgotado' || d.estoque === 0)    problemas.push(`"${item.name}" está esgotado.`);
+        else if (d.estoque !== undefined && d.estoque < item.qty) problemas.push(`"${item.name}" tem apenas ${d.estoque} unidade(s).`);
+      }
+      if (problemas.length) {
+        alert('⚠️ Problema no pedido:\n\n' + problemas.join('\n'));
+        btn.disabled = false; btn.textContent = '✅ Confirmar Pedido';
+        return;
+      }
+
+      const destinatario = {
+        nome:        $('dest-nome').value.trim(),
+        cpf:         $('dest-cpf').value.trim(),
+        telefone:    $('dest-telefone').value.trim(),
+        cep:         $('dest-cep').value.trim(),
+        rua:         $('dest-rua').value.trim(),
+        numero:      $('dest-numero').value.trim(),
+        complemento: $('dest-complemento').value.trim(),
+        bairro:      $('dest-bairro').value.trim(),
+        cidade:      $('dest-cidade').value.trim(),
+        estado:      $('dest-estado').value.trim(),
+        email:       usuarioAtual.email,
+      };
+
+      // Gera ID base
+      pedidoBaseId = gerarIdBase();
+
+      const totalGeral = carrinho.reduce((s, i) => s + (i.price * i.qty), 0);
+      const totalFrete = gruposVendedor.reduce((s, g) => s + (g.freteSelecionado?.price || 0), 0);
+
+      btn.textContent = 'Salvando pedido...';
+
+      // Salva pedido via Cloud Function (criptografa dados sensíveis - LGPD)
+      const pedidoPayload = {
+        pedidoId:   pedidoBaseId + '-00',
+        userId:     usuarioAtual.uid,
+        userEmail:  usuarioAtual.email,
+        itens:      carrinho.map(i => ({ id: i.id, name: i.name, type: i.type || '', price: i.price, qty: i.qty, image: i.image || '' })),
+        subpedidos: gruposVendedor.map((g, idx) => ({
+          pedidoId:    pedidoBaseId + '-0' + (idx + 1),
+          vendedorUid: g.vendedorUid,
+          vendedorNome: g.vendedorNome,
+          status:      'pendente',
+          total:       g.itens.reduce((s, i) => s + (i.price * i.qty), 0) + (g.freteSelecionado?.price || 0),
+        })),
+        total:      totalGeral + totalFrete,
+        totalFrete,
+        destinatario,
+        frete:      totalFrete > 0 ? 'calculado' : 'a combinar',
+        status:     'pendente',
+      };
+
+      const salvarResp = await fetch(`${CF_URL}/salvarPedido`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ uid: usuarioAtual.uid, pedido: pedidoPayload })
+      });
+      const salvarData = await salvarResp.json();
+      if (!salvarData.ok) throw new Error(salvarData.error || 'Erro ao salvar pedido');
+
+      const pedidoMasterId = salvarData.pedidoId;
+
+      // Gera cobranças Pix por vendedor via Cloud Function
+      btn.textContent = 'Gerando cobranças Pix...';
+      for (let idx = 0; idx < gruposVendedor.length; idx++) {
+        const grupo       = gruposVendedor[idx];
+        const subTotal    = grupo.itens.reduce((s, i) => s + (i.price * i.qty), 0);
+        const frete       = grupo.freteSelecionado?.price || 0;
+        const totalVendedor = subTotal + frete;
+        const subpedidoId = '0' + (idx + 1);
+
+        try {
+          const pixResp = await fetch(`${CF_URL}/gerarLinkPagamento`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              pedidoId:    pedidoMasterId,
+              subpedidoId,
+              vendedorUid: grupo.vendedorUid,
+              valor:       totalVendedor,
+              itens:       grupo.itens,
+              destinatario // passa destinatário para pré-preencher checkout InfinitePay
+            })
+          });
+          const pixData = await pixResp.json();
+          if (pixData.ok) {
+            grupo.checkoutUrl = pixData.checkoutUrl;
+            grupo.orderNsu    = pixData.orderNsu;
+          }
+        } catch (_) {
+          // Se falhar, modal mostra opção de contato
+        }
+        grupo.pedidoMasterId = pedidoMasterId;
+        grupo.subpedidoId    = subpedidoId;
+      }
+
+      // Limpa carrinho
+      localStorage.setItem(CART_KEY, '[]');
+      window.dispatchEvent(new Event('cart-updated'));
+
+      btn.disabled = false;
+
+      // Abre modal de pagamento
+      abrirModalPix();
+
+    } catch (err) {
+      alert('Erro ao confirmar pedido: ' + err.message);
+      btn.disabled = false; btn.textContent = '✅ Confirmar Pedido';
+    }
+  };
+
+  // ── MODAL PIX ─────────────────────────────────────────────
+  let pixEtapaAtual = 0;
+
+  let pixListeners = []; // listeners Firestore ativos
+
+  const abrirModalPix = () => {
+    pixEtapaAtual = 0;
+    renderModalPix();
+    $('modal-pix').classList.add('open');
+    iniciarListenersFirestore();
+  };
+
+  // Escuta subpedidos no Firestore e avança automaticamente ao confirmar pagamento
+  const iniciarListenersFirestore = () => {
+    // Cancela listeners anteriores
+    pixListeners.forEach(unsub => unsub());
+    pixListeners = [];
+
+    gruposVendedor.forEach((grupo, idx) => {
+      if (!grupo.pedidoMasterId || !grupo.subpedidoId) return;
+
+      const subRef = doc(db, 'pedidos', grupo.pedidoMasterId, 'subpedidos', grupo.subpedidoId);
+      const unsub  = onSnapshot(subRef, (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data();
+        if (data.status === 'pago' && grupo.pixStatus !== 'pago') {
+          grupo.pixStatus = 'pago';
+          // Atualiza status visual se este for o step atual
+          const statusEl = $(`pix-status-${idx}`);
+          if (statusEl) {
+            statusEl.textContent = '✅ Pagamento confirmado!';
+            statusEl.style.color = 'var(--green2)';
+          }
+          // Avança automaticamente após 1.5s se for a etapa atual
+          if (idx === pixEtapaAtual) {
+            setTimeout(() => {
+              if (pixEtapaAtual < gruposVendedor.length - 1) {
+                pixEtapaAtual++;
+                renderModalPix();
+              } else {
+                pixFinalizar();
+              }
+            }, 1500);
+          }
+        }
+      });
+      pixListeners.push(unsub);
+    });
+  };
+
+  const renderModalPix = () => {
+    const content  = $('modal-pix-content');
+    const total    = gruposVendedor.length;
+    const grupo    = gruposVendedor[pixEtapaAtual];
+    const subTotal = grupo.itens.reduce((s, i) => s + (i.price * i.qty), 0);
+    const frete    = grupo.freteSelecionado?.price || 0;
+    const totalPagar = subTotal + frete;
+    const subId    = pedidoBaseId + '-0' + (pixEtapaAtual + 1);
+
+    // Progress dots
+    const dots = gruposVendedor.map((_, i) => {
+      const cls = i < pixEtapaAtual ? 'done' : i === pixEtapaAtual ? 'active' : '';
+      return `<div class="progress-dot ${cls}"></div>`;
+    }).join('');
+
+    // Aviso múltiplos
+    const avisoHtml = total > 1 ? `
+      <div class="modal-pix-aviso">
+        ⚠️ Você está comprando de <strong>${total} vendedores diferentes</strong>.<br>
+        São <strong>pagamentos individuais e separados</strong>.<br>
+        Se um não for pago, apenas os pagos serão confirmados.
+      </div>` : '';
+
+    // Itens do grupo
+    const itensHtml = grupo.itens.map(i => `
+      <div class="modal-pix-item">
+        <span>${i.name} x${i.qty}</span>
+        <span>${fmt(i.price * i.qty)}</span>
+      </div>`).join('');
+
+    const freteHtml = `
+      <div class="modal-pix-frete">
+        <span>Frete (${grupo.freteSelecionado?.name || 'a combinar'})</span>
+        <span>${frete > 0 ? fmt(frete) : 'A combinar'}</span>
+      </div>`;
+
+    // QR Code nativo, copia-e-cola ou fallback para botão LivePix
+    let btnPixHtml = '';
+    if (grupo.checkoutUrl) {
+      btnPixHtml = `
+        <div style="text-align:center;margin-bottom:1rem">
+          <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Clique para pagar via InfinitePay. Após o pagamento, retorne a esta página.</p>
+          <a href="${grupo.checkoutUrl}" target="_blank" rel="noopener" class="btn-pix">
+            💳 Pagar via InfinitePay
+          </a>
+        </div>
+        <div id="pix-status-${pixEtapaAtual}" style="text-align:center;font-family:'Barlow Condensed';font-size:0.85rem;color:var(--muted);margin:1rem 0">⏳ Aguardando confirmação...</div>`;
+    } else if (!grupo.infiniteTag) {
+      btnPixHtml = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:0.8rem;text-align:center;color:var(--muted);font-size:0.85rem;margin-bottom:0.8rem">
+        Este vendedor não configurou o InfinitePay ainda.<br>Entre em contato para combinar o pagamento.
+      </div>`;
+    } else {
+      btnPixHtml = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:0.8rem;text-align:center;color:var(--muted);font-size:0.85rem;margin-bottom:0.8rem">
+        ⚠️ Não foi possível gerar o link de pagamento.<br>Entre em contato com o vendedor para combinar o pagamento.
+      </div>`;
+    };
+
+    const btnAvancar = pixEtapaAtual < total - 1
+      ? `<button class="btn-pix-secundario" onclick="window.pixProxima()">Próximo pagamento →</button>`
+      : `<button class="btn-pix-secundario" onclick="window.pixFinalizar()">Concluir ✅</button>`;
+
+    content.innerHTML = `
+      ${total > 1 ? `<div class="modal-pix-progress">${dots}</div>` : ''}
+      ${total > 1 ? `<div class="modal-pix-step">Pagamento ${pixEtapaAtual + 1} de ${total}</div>` : ''}
+      <h3>${grupo.vendedorNome}</h3>
+      <div class="modal-pix-valor">${fmt(totalPagar)}</div>
+      ${avisoHtml}
+      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.06em;margin-bottom:0.5rem">Itens</div>
+      <div class="modal-pix-itens">
+        ${itensHtml}
+        ${freteHtml}
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:1rem;padding:0.6rem 0.8rem;background:var(--bg3);border-radius:2px;border:1px solid var(--border)">
+        📋 Referência do pedido: <strong style="color:var(--white);letter-spacing:0.05em">${subId}</strong><br>
+        <span style="font-size:0.7rem">Informe este código ao vendedor após o pagamento.</span>
+      </div>
+      ${btnPixHtml}
+      ${btnAvancar}`;
+  };
+
+  window.pixProxima = () => {
+    pixEtapaAtual++;
+    if (pixEtapaAtual >= gruposVendedor.length) {
+      pixFinalizar();
+      return;
+    }
+    renderModalPix();
+  };
+
+  window.pixFinalizar = () => {
+    // Cancela todos os listeners
+    pixListeners.forEach(unsub => unsub());
+    pixListeners = [];
+
+    const todosPagos = gruposVendedor.every(g => g.pixStatus === 'pago');
+    const algumPago  = gruposVendedor.some(g => g.pixStatus === 'pago');
+
+    const content = $('modal-pix-content');
+    content.innerHTML = `
+      <div class="modal-pix-final">
+        <div class="icon">${todosPagos ? '✅' : algumPago ? '⚠️' : '📋'}</div>
+        <h3>${todosPagos ? 'Pedido Confirmado!' : 'Pedido Registrado'}</h3>
+        <p>${todosPagos
+          ? 'Todos os pagamentos foram confirmados!'
+          : 'Seu pedido foi registrado. Pagamentos pendentes serão verificados automaticamente.'}</p>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:1rem;margin-bottom:1.5rem">
+          <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:0.3rem">Número do Pedido</div>
+          <div style="font-family:'Barlow Condensed';font-size:1.8rem;font-weight:800;color:var(--gold)">#${pedidoBaseId}-00</div>
+        </div>
+        <a href="meu_perfil.html" class="btn-pix" style="text-decoration:none;display:flex">📦 Ver Meus Pedidos</a>
+        <a href="index.html" class="btn-pix-secundario" style="text-decoration:none;display:flex;justify-content:center;margin-top:0.5rem">🏠 Continuar Comprando</a>
+      </div>`;
+  };
+
+  carregarCarrinho();
+</script>
+</body>
+</html>
